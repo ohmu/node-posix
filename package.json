@@ -1,0 +1,20 @@
+{
+    "name": "posix",
+    "version": "0.0.1",
+    "description": "The missing POSIX system calls",
+    "keywords" : ["posix", "rlimit", "getrlimit", "setrlimit", "ulimit"],
+    "homepage": "http://github.com/melor/node-posix",
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/melor/node-posix.git"
+    },
+    "author" : "Mika Eloranta <mel@ohmu.fi>",
+    "main" : "./lib",
+    "dependencies" : {
+    },
+    "scripts" : {
+        "test" : "make test",
+        "install" : "node-waf configure build || true"
+    },
+    "engines" : { "node": ">= 0.4.0" }
+}

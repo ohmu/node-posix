@@ -1,0 +1,13 @@
+Makefile
+*.md
+.git*
+.lock-wscript
+build/
+*~
+c4che
+*#*
+.DS_Store
+.npmignore
+*.log
+*.o
+node_modules/
