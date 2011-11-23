@@ -9,7 +9,7 @@
         "url" : "git://github.com/melor/node-posix.git"
     },
     "author" : "Mika Eloranta <mel@ohmu.fi>",
-    "main" : "./lib",
+    "main" : "./lib/posix",
     "dependencies" : {
     },
     "scripts" : {

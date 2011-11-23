@@ -1,5 +1,5 @@
 var assert = require('assert');
-var posix = require("posix");
+var posix = require("../../lib/posix");
 
 var ppid = posix.getppid()
 console.log("getppid: " + ppid);
