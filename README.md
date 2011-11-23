@@ -4,8 +4,13 @@ The missing POSIX system calls for Node.
 
 ## FAQ
 
+* Q: Why?
+* A: Because the Node core has a limited set of sometimes useful POSIX system
+  calls.
+
 * Q: How mature/stable is this?
-* A: Work is very much in progress. The module is not tested or proven in production use yet.
+* A: Work is very much in progress. The module is not tested or proven in
+  production use yet.
 
 ## General usage
 
@@ -16,7 +21,21 @@ The missing POSIX system calls for Node.
 
 Returns the parent process's PID.
 
-    console.log("Parent PID: " + posix.getppid();
+    console.log("Parent PID: " + posix.getppid());
+
+## posix.setsid()
+
+Creates a session and sets the process group ID. Returns the process group ID.
+
+    console.log("Session ID: " + posix.setsid());
+
+## posix.getpgid(pid)
+
+Return the process group ID of the current process (`posix.getpgid(0)`) or of
+a process of a given PID (`posix.getpid(PID)`).
+
+    console.log("My PGID: " + posix.setpgid(0));
+    console.log("init's PGID: " + posix.setpgid(1));
 
 ## posix.getrlimit(resource)
 
@@ -29,8 +48,8 @@ range from 0 up to the hard limit, and (irreversibly) lower its hard limit.
 
 Supported resources:
 
-`'core'` (RLIMIT_CORE) Maximum size of core file.  When 0 no core dump files are
-created.
+`'core'` (RLIMIT_CORE) Maximum size of core file.  When 0 no core dump files
+are created.
 
 `'cpu'` (RLIMIT_CPU) CPU time limit in seconds.  When the process reaches the
 soft limit, it is sent a SIGXCPU signal. The default action for this signal is
@@ -70,6 +89,10 @@ value of `null` indicates "unlimited" (RLIM_INFINITY).
 
     // enable core dumps of unlimited size
     posix.setrlimit("core", { soft: null, hard: null });
+
+## Credits
+
+* Some of the documentation strings stolen from Linux man pages.
 
 ## LICENSE
 
