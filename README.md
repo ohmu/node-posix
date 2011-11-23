@@ -2,6 +2,16 @@
 
 The missing POSIX system calls for Node.
 
+## FAQ
+
+* Q: How mature/stable is this?
+* A: Work is very much in progress. The module is not tested or proven in production use yet.
+
+## General usage
+
+* Installation: `npm install posix`
+* In your code: `var posix = require('posix');`
+
 ## posix.getppid()
 
 Returns the parent process's PID.
