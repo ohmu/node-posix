@@ -32,10 +32,10 @@ Creates a session and sets the process group ID. Returns the process group ID.
 ## posix.getpgid(pid)
 
 Return the process group ID of the current process (`posix.getpgid(0)`) or of
-a process of a given PID (`posix.getpid(PID)`).
+a process of a given PID (`posix.getpgid(PID)`).
 
-    console.log("My PGID: " + posix.setpgid(0));
-    console.log("init's PGID: " + posix.setpgid(1));
+    console.log("My PGID: " + posix.getpgid(0));
+    console.log("init's PGID: " + posix.getpgid(1));
 
 ## posix.getrlimit(resource)
 
