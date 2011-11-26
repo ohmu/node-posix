@@ -5,8 +5,7 @@ The missing POSIX system calls for Node.
 ## FAQ
 
 * Q: Why?
-* A: Because the Node core has a limited set of sometimes useful POSIX system
-  calls.
+* A: Because the Node core has a limited set of POSIX system calls.
 * Q: How mature/stable is this?
 * A: Each version released in NPM has decent automated test coverage. The
   module is still new and not battle-hardened.
@@ -21,11 +20,18 @@ The missing POSIX system calls for Node.
 * `getuid()` in Node core as `process.getuid`
 * `setgid()` in Node core as `process.setgid`
 * `setregid()` TODO
-* `setreuid()` TODO
 * `setuid()` in Node core as `process.setuid`, NOTE: should not be used
   because of inconsistent behavior under different operating systems, see
   http://www.cs.ucdavis.edu/~hchen/paper/usenix02.html
-* `ulimit()` obsolete, use `posix.setrlimit()` instead
+
+### User/Group database access
+* `getgrnam()` is not reentrant, will not be supported, see `getgrnam_r`
+* `getgrnam_r()` TODO
+* `getpwnam()` is not reentrant, will not be supported, see `getpwnam_r`
+* `getpwnam_r()` TODO
+
+### Resource limits
+* `ulimit()` is obsolete, use `posix.setrlimit()` instead
 
 ## General usage
 
@@ -127,19 +133,34 @@ space) in bytes.
 
 ### posix.setegid(gid)
 
-Sets the effective group ID of the current process. `gid` can be either a
+Sets the Effective group ID of the current process. `gid` can be either a
 numeric GID or a group name (string).
 
-    posix.setegid(0); // set effective UID to "wheel"
-    posix.seteuid("nobody");
+    posix.setegid(0); // set effective group UID to "wheel"
+    posix.setegid("nobody");
 
 ### posix.seteuid(uid)
 
-Sets the effective user ID of the current process. `uid` can be either a
+Sets the Effective user ID of the current process. `uid` can be either a
 numeric UID or a username (string).
 
-    posix.seteuid(0); // set effective UID to root
+    posix.seteuid(0); // set effective UID to "root"
     posix.seteuid("nobody");
+
+### posix.setreuid(ruid, euid)
+
+Sets the Real and Effective user IDs of the current process. `ruid` and `euid`
+can be either a numeric UIDs or a usernames (strings). A value of `-1` means
+that the corresponding UID is left unchanged.
+
+IMPORTANT NOTE: what happens to the Saved UID when `setreuid()` is called is
+operating system dependent. For example on OSX the Saved UID seems to be set
+to the previous EUID. This means that the process can escape back to EUID=0
+simply by calling `setreuid(0, 0)`. A workaround for this is to call
+`posix.setreuid(ruid, euid)` twice with the same arguments.
+
+    posix.setreuid(-1, 1000); // just set the EUID to 1000
+    posix.setreuid("nobody", "nobody"); // change both RUID and EUID to "nobody"
 
 ### posix.setrlimit(resource, limits)
 

@@ -26,6 +26,10 @@ function test_seteuid() {
     posix.seteuid(123);
     assert.equal(posix.geteuid(), 123);
 
+    assert.throws(function () {
+        posix.seteuid(456);
+    }, /EPERM/);
+
     posix.seteuid(0);
     assert.equal(posix.geteuid(), 0);
 }

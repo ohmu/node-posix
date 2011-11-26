@@ -229,7 +229,7 @@ Handle<Value> arg_to_uid(const Local<Value> arg, uid_t* uid) {
     else if (arg->IsString()) {
         String::Utf8Value pwnam(arg->ToString());
         struct passwd pwd, *pwdp = NULL;
-        int err = getpwnam_r(*pwnam, &pwd, getbuf, ARRAY_SIZE(getbuf), &pwdp);
+        int err = getpwnam_r(*pwnam, &pwd, getbuf, sizeof(getbuf), &pwdp);
         if(err || (pwdp == NULL)) {
             if(errno == 0)
                 return EXCEPTION("user id does not exist");
@@ -254,7 +254,7 @@ Handle<Value> arg_to_gid(const Local<Value> arg, gid_t* gid) {
     else if(arg->IsString()) {
         String::Utf8Value grpnam(arg->ToString());
         struct group grp, *grpp = NULL;
-        int err = getgrnam_r(*grpnam, &grp, getbuf, ARRAY_SIZE(getbuf), &grpp);
+        int err = getgrnam_r(*grpnam, &grp, getbuf, sizeof(getbuf), &grpp);
         if(err || (grpp == NULL)) {
             if(errno == 0)
                 return EXCEPTION("group id does not exist");
@@ -311,6 +311,33 @@ static Handle<Value> node_setegid(const Arguments& args) {
     return Undefined();
 }
 
+static Handle<Value> node_setreuid(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 2) {
+        return EXCEPTION("setreuid: requires exactly 2 arguments");
+    }
+
+    uid_t ruid = 0;
+    Handle<Value> error = arg_to_uid(args[0], &ruid);
+    if(!error->IsNull()) {
+        return error;
+    }
+
+    uid_t euid = 0;
+    error = arg_to_uid(args[1], &euid);
+    if(!error->IsNull()) {
+        return error;
+    }
+
+    if(setreuid(ruid, euid)) {
+        return ThrowException(ErrnoException(errno, "setreuid"));
+    }
+
+    return Undefined();
+}
+
+
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
@@ -322,6 +349,7 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
     NODE_SET_METHOD(target, "setegid", node_setegid);
     NODE_SET_METHOD(target, "seteuid", node_seteuid);
+    NODE_SET_METHOD(target, "setreuid", node_setreuid);
     NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
     NODE_SET_METHOD(target, "setsid", node_setsid);
 }

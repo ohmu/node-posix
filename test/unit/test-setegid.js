@@ -17,8 +17,8 @@ function test_setegid() {
     var old = posix.getegid();
     assert.equal(old, 0);
 
-    posix.setegid("wheel");
-    assert.equal(posix.getegid(), 0);
+    posix.setegid("daemon");
+    assert.equal(posix.getegid(), 1);
 
     posix.setegid(0);
     assert.equal(posix.getegid(), 0);
