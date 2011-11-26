@@ -19,7 +19,6 @@ The missing POSIX system calls for Node.
 ### User and Group ID Management
 * `getgid()` in Node core as `process.getgid`
 * `getuid()` in Node core as `process.getuid`
-* `setegid()` TODO
 * `setgid()` in Node core as `process.setgid`
 * `setregid()` TODO
 * `setreuid()` TODO
@@ -125,6 +124,14 @@ space) in bytes.
 
     var limits = posix.getrlimit("nofile");
     console.log('Current limits: soft=' + limits.soft + ", max=" + limits.hard);
+
+### posix.setegid(gid)
+
+Sets the effective group ID of the current process. `gid` can be either a
+numeric GID or a group name (string).
+
+    posix.setegid(0); // set effective UID to "wheel"
+    posix.seteuid("nobody");
 
 ### posix.seteuid(uid)
 

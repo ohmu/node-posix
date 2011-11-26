@@ -5,6 +5,7 @@
 #include <sys/resource.h> // setrlimit, getrlimit
 #include <limits.h> // PATH_MAX
 #include <pwd.h> // getpwnam_r, passwd
+#include <grp.h> // getgrnam_r, group
 
 #define EXCEPTION(msg) ThrowException(Exception::Error(String::New(msg)))
 
@@ -245,6 +246,31 @@ Handle<Value> arg_to_uid(const Local<Value> arg, uid_t* uid) {
     return Null();
 }
 
+Handle<Value> arg_to_gid(const Local<Value> arg, gid_t* gid) {
+    char getbuf[PATH_MAX + 1];
+    if(arg->IsNumber()) {
+        *gid = arg->Int32Value();
+    }
+    else if(arg->IsString()) {
+        String::Utf8Value grpnam(arg->ToString());
+        struct group grp, *grpp = NULL;
+        int err = getgrnam_r(*grpnam, &grp, getbuf, ARRAY_SIZE(getbuf), &grpp);
+        if(err || (grpp == NULL)) {
+            if(errno == 0)
+                return EXCEPTION("group id does not exist");
+            else
+                return ThrowException(ErrnoException(errno, "getpwnam_r"));
+        }
+
+        *gid = grpp->gr_gid;
+    }
+    else {
+        return EXCEPTION("argument must be a number or a string");
+    }
+
+    return Null();
+}
+
 static Handle<Value> node_seteuid(const Arguments& args) {
     HandleScope scope;
 
@@ -265,6 +291,26 @@ static Handle<Value> node_seteuid(const Arguments& args) {
     return Undefined();
 }
 
+static Handle<Value> node_setegid(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 1) {
+        return EXCEPTION("setegid: requires exactly 1 argument");
+    }
+
+    uid_t gid = 0;
+    Handle<Value> error = arg_to_gid(args[0], &gid);
+    if(!error->IsNull()) {
+        return error;
+    }
+
+    if(setegid(gid)) {
+        return ThrowException(ErrnoException(errno, "setegid"));
+    }
+
+    return Undefined();
+}
+
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
@@ -274,6 +320,7 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "getpgid", node_getpgid);
     NODE_SET_METHOD(target, "getppid", node_getppid);
     NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
+    NODE_SET_METHOD(target, "setegid", node_setegid);
     NODE_SET_METHOD(target, "seteuid", node_seteuid);
     NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
     NODE_SET_METHOD(target, "setsid", node_setsid);
