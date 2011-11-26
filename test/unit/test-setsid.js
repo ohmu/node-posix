@@ -31,3 +31,6 @@ assert.throws(function () {
     posix.setsid();
 }, /EPERM/);
 
+////////////////////////////////////////
+// wrappers
+assert.equal(posix.getpgid(0), posix.getpgrp());
