@@ -17,6 +17,21 @@ The missing POSIX system calls for Node.
 * Installation: `npm install posix`
 * In your code: `var posix = require('posix');`
 
+## posix.chroot(path, options)
+
+Changes the root directory of the calling process to that specified in `path`.
+This directory will be used for pathnames beginning with `/`. The root
+directory is inherited by all children of the calling process.
+
+The working directory is also automatically set to the new root directory.
+
+NOTE: Please be aware of the limitations of `chroot` jails:
+
+* "Best Practices for UNIX `chroot()` Operations": http://www.unixwiz.net/techtips/chroot-practices.html
+* "How to break out of a `chroot()` jail": http://www.bpfh.net/simes/computing/chroot-break.html
+
+    posix.chroot('/somewhere/safe');
+
 ## posix.getppid()
 
 Returns the parent process's PID.

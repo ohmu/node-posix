@@ -13,7 +13,7 @@ static Handle<Value> node_getppid(const Arguments& args) {
     HandleScope scope;
 
     if(args.Length() != 0) {
-        return EXCEPTION("getppid takes no arguments");
+        return EXCEPTION("getppid: takes no arguments");
     }
 
     return scope.Close(Integer::New(getppid()));
@@ -37,15 +37,38 @@ static Handle<Value> node_setsid(const Arguments& args) {
     HandleScope scope;
 
     if(args.Length() != 0) {
-        return EXCEPTION("setsid takes no arguments");
+        return EXCEPTION("setsid: takes no arguments");
     }
 
     pid_t sid = setsid();
     if(sid == -1) {
-        return ThrowException(ErrnoException(errno, "getrlimit"));
+        return ThrowException(ErrnoException(errno, "setsid"));
     }
 
     return scope.Close(Integer::New(sid));
+}
+
+static Handle<Value> node_chroot(const Arguments& args) {
+    if(args.Length() != 1) {
+        return EXCEPTION("chroot: takes exactly one argument");
+    }
+
+    if (!args[0]->IsString()) {
+        return EXCEPTION("chroot: first argument must be a string");
+    }
+
+    String::Utf8Value dir_path(args[0]->ToString());
+
+    // proper order is to first chdir() and then chroot()
+    if(chdir(*dir_path)) {
+        return ThrowException(ErrnoException(errno, "chroot: chdir: "));
+    }
+
+    if(chroot(*dir_path)) {
+        return ThrowException(ErrnoException(errno, "chroot"));
+    }
+
+    return Undefined();
 }
 
 struct rlimit_name_to_res_t {
@@ -68,12 +91,12 @@ static Handle<Value> node_getrlimit(const Arguments& args) {
     HandleScope scope;
 
     if(args.Length() != 1) {
-        return EXCEPTION("getrlimit requires exactly 1 argument");
+        return EXCEPTION("getrlimit: requires exactly 1 argument");
     }
 
     struct rlimit limit;
     if (!args[0]->IsString()) {
-        return EXCEPTION("getrlimit argument must be a string");
+        return EXCEPTION("getrlimit: argument must be a string");
     }
 
     String::Utf8Value rlimit_name(args[0]->ToString());
@@ -107,7 +130,7 @@ static Handle<Value> node_setrlimit(const Arguments& args) {
     HandleScope scope;
 
     if(args.Length() != 2) {
-        return EXCEPTION("setrlimit requires exactly 2 arguments");
+        return EXCEPTION("setrlimit: requires exactly 2 arguments");
     }
 
     String::Utf8Value rlimit_name(args[0]->ToString());
@@ -126,7 +149,7 @@ static Handle<Value> node_setrlimit(const Arguments& args) {
     }
 
     if (!args[1]->IsObject()) {
-        return EXCEPTION("getrlimit second argument must be an object");
+        return EXCEPTION("getrlimit: second argument must be an object");
     }
 
     Local<Object> limit_in = args[1]->ToObject(); // Cast
@@ -181,6 +204,7 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "getppid", node_getppid);
     NODE_SET_METHOD(target, "getpgid", node_getpgid);
     NODE_SET_METHOD(target, "setsid", node_setsid);
+    NODE_SET_METHOD(target, "chroot", node_chroot);
     NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
     NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
 }
