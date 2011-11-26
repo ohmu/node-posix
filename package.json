@@ -1,8 +1,12 @@
 {
     "name": "posix",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "The missing POSIX system calls",
-    "keywords" : ["posix", "rlimit", "getrlimit", "setrlimit", "ulimit", "setuid", "setgid", "seteuid", "setegid", "chroot", "setreuid", "setregid", "getpgrp", "setsid", "setpgid"],
+    "keywords" : [
+        "posix", "rlimit", "getrlimit", "setrlimit", "ulimit", "setuid",
+        "setgid", "seteuid", "setegid", "chroot", "setreuid", "setregid",
+        "getpgrp", "setsid", "setpgid", "getpwnam", "getgrnam", "uid", "gid"
+    ],
     "homepage": "http://github.com/melor/node-posix",
     "repository" : {
         "type" : "git",

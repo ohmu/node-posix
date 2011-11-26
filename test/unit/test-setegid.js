@@ -2,14 +2,6 @@ var assert = require('assert'),
     posix = require("../../lib/posix");
 
 assert.throws(function () {
-    posix.setegid();
-}, /exactly 1 argument/);
-
-assert.throws(function () {
-    posix.setegid(123, 456);
-}, /exactly 1 argument/);
-
-assert.throws(function () {
     posix.setegid("dummyzzz1234");
 }, /group id does not exist|ENOENT/);
 

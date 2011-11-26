@@ -4,8 +4,8 @@
 #include <errno.h>
 #include <sys/resource.h> // setrlimit, getrlimit
 #include <limits.h> // PATH_MAX
-#include <pwd.h> // getpwnam_r, passwd
-#include <grp.h> // getgrnam_r, group
+#include <pwd.h> // getpwnam, passwd
+#include <grp.h> // getgrnam, group
 
 #define EXCEPTION(msg) ThrowException(Exception::Error(String::New(msg)))
 
@@ -221,54 +221,91 @@ static Handle<Value> node_setrlimit(const Arguments& args) {
     return Undefined();
 }
 
-Handle<Value> arg_to_uid(const Local<Value> arg, uid_t* uid) {
-    char getbuf[PATH_MAX + 1];
-    if(arg->IsNumber()) {
-        *uid = arg->Int32Value();
-    }
-    else if (arg->IsString()) {
-        String::Utf8Value pwnam(arg->ToString());
-        struct passwd pwd, *pwdp = NULL;
-        int err = getpwnam_r(*pwnam, &pwd, getbuf, sizeof(getbuf), &pwdp);
-        if(err || (pwdp == NULL)) {
-            if(errno == 0)
-                return EXCEPTION("user id does not exist");
-            else
-                return ThrowException(ErrnoException(errno, "getpwnam_r"));
-        }
+static Handle<Value> node_getpwnam(const Arguments& args) {
+    HandleScope scope;
 
-        *uid = pwdp->pw_uid;
+    if(args.Length() != 1) {
+        return EXCEPTION("getpwnam: requires exactly 1 argument");
+    }
+
+    struct passwd* pwd;
+    errno = 0; // reset errno before the call
+    if(args[0]->IsNumber()) {
+        pwd = getpwuid(args[0]->Int32Value());
+        if(errno) {
+            return ThrowException(ErrnoException(errno, "getpwuid"));
+        }
+    }
+    else if (args[0]->IsString()) {
+        String::Utf8Value pwnam(args[0]->ToString());
+        pwd = getpwnam(*pwnam);
+        if(errno) {
+            return ThrowException(ErrnoException(errno, "getpwnam"));
+        }
     }
     else {
         return EXCEPTION("argument must be a number or a string");
     }
 
-    return Null();
+    if(!pwd) {
+        return EXCEPTION("user id does not exist");
+    }
+
+    Local<Object> obj = Object::New();
+    obj->Set(String::New("name"), String::New(pwd->pw_name));
+    obj->Set(String::New("passwd"), String::New(pwd->pw_passwd));
+    obj->Set(String::New("uid"), Number::New(pwd->pw_uid));
+    obj->Set(String::New("gid"), Number::New(pwd->pw_gid));
+    obj->Set(String::New("gecos"), String::New(pwd->pw_gecos));
+    obj->Set(String::New("shell"), String::New(pwd->pw_shell));
+    obj->Set(String::New("dir"), String::New(pwd->pw_dir));
+
+    return scope.Close(obj);
 }
 
-Handle<Value> arg_to_gid(const Local<Value> arg, gid_t* gid) {
-    char getbuf[PATH_MAX + 1];
-    if(arg->IsNumber()) {
-        *gid = arg->Int32Value();
-    }
-    else if(arg->IsString()) {
-        String::Utf8Value grpnam(arg->ToString());
-        struct group grp, *grpp = NULL;
-        int err = getgrnam_r(*grpnam, &grp, getbuf, sizeof(getbuf), &grpp);
-        if(err || (grpp == NULL)) {
-            if(errno == 0)
-                return EXCEPTION("group id does not exist");
-            else
-                return ThrowException(ErrnoException(errno, "getpwnam_r"));
-        }
+static Handle<Value> node_getgrnam(const Arguments& args) {
+    HandleScope scope;
 
-        *gid = grpp->gr_gid;
+    if(args.Length() != 1) {
+        return EXCEPTION("getgrnam: requires exactly 1 argument");
+    }
+
+    struct group* grp;
+    errno = 0; // reset errno before the call
+    if(args[0]->IsNumber()) {
+        grp = getgrgid(args[0]->Int32Value());
+        if(errno) {
+            return ThrowException(ErrnoException(errno, "getgrgid"));
+        }
+    }
+    else if (args[0]->IsString()) {
+        String::Utf8Value pwnam(args[0]->ToString());
+        grp = getgrnam(*pwnam);
+        if(errno) {
+            return ThrowException(ErrnoException(errno, "getgrnam"));
+        }
     }
     else {
         return EXCEPTION("argument must be a number or a string");
     }
 
-    return Null();
+    if(!grp) {
+        return EXCEPTION("group id does not exist");
+    }
+
+    Local<Object> obj = Object::New();
+    obj->Set(String::New("name"), String::New(grp->gr_name));
+    obj->Set(String::New("passwd"), String::New(grp->gr_passwd));
+    obj->Set(String::New("gid"), Number::New(grp->gr_gid));
+
+    Local<Array> members = Array::New();
+    char** cur = grp->gr_mem;
+    for(size_t i=0; *cur; ++i, ++cur) {
+        (*members)->Set(i, String::New(*cur));
+    }
+    obj->Set(String::New("members"), members);
+
+    return scope.Close(obj);
 }
 
 static Handle<Value> node_seteuid(const Arguments& args) {
@@ -278,13 +315,7 @@ static Handle<Value> node_seteuid(const Arguments& args) {
         return EXCEPTION("seteuid: requires exactly 1 argument");
     }
 
-    uid_t uid = 0;
-    Handle<Value> error = arg_to_uid(args[0], &uid);
-    if(!error->IsNull()) {
-        return error;
-    }
-
-    if(seteuid(uid)) {
+    if(seteuid(args[0]->Int32Value())) {
         return ThrowException(ErrnoException(errno, "seteuid"));
     }
 
@@ -298,13 +329,7 @@ static Handle<Value> node_setegid(const Arguments& args) {
         return EXCEPTION("setegid: requires exactly 1 argument");
     }
 
-    uid_t gid = 0;
-    Handle<Value> error = arg_to_gid(args[0], &gid);
-    if(!error->IsNull()) {
-        return error;
-    }
-
-    if(setegid(gid)) {
+    if(setegid(args[0]->Int32Value())) {
         return ThrowException(ErrnoException(errno, "setegid"));
     }
 
@@ -318,19 +343,7 @@ static Handle<Value> node_setregid(const Arguments& args) {
         return EXCEPTION("setregid: requires exactly 2 arguments");
     }
 
-    uid_t rgid = 0;
-    Handle<Value> error = arg_to_gid(args[0], &rgid);
-    if(!error->IsNull()) {
-        return error;
-    }
-
-    uid_t egid = 0;
-    error = arg_to_gid(args[1], &egid);
-    if(!error->IsNull()) {
-        return error;
-    }
-
-    if(setregid(rgid, egid)) {
+    if(setregid(args[0]->Int32Value(), args[1]->Int32Value())) {
         return ThrowException(ErrnoException(errno, "setregid"));
     }
 
@@ -344,19 +357,7 @@ static Handle<Value> node_setreuid(const Arguments& args) {
         return EXCEPTION("setreuid: requires exactly 2 arguments");
     }
 
-    uid_t ruid = 0;
-    Handle<Value> error = arg_to_uid(args[0], &ruid);
-    if(!error->IsNull()) {
-        return error;
-    }
-
-    uid_t euid = 0;
-    error = arg_to_uid(args[1], &euid);
-    if(!error->IsNull()) {
-        return error;
-    }
-
-    if(setreuid(ruid, euid)) {
+    if(setreuid(args[0]->Int32Value(), args[1]->Int32Value())) {
         return ThrowException(ErrnoException(errno, "setreuid"));
     }
 
@@ -371,11 +372,13 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "geteuid", node_geteuid);
     NODE_SET_METHOD(target, "getpgid", node_getpgid);
     NODE_SET_METHOD(target, "getppid", node_getppid);
+    NODE_SET_METHOD(target, "getpwnam", node_getpwnam);
+    NODE_SET_METHOD(target, "getgrnam", node_getgrnam);
     NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
-    NODE_SET_METHOD(target, "setegid", node_setegid);
-    NODE_SET_METHOD(target, "seteuid", node_seteuid);
-    NODE_SET_METHOD(target, "setregid", node_setregid);
-    NODE_SET_METHOD(target, "setreuid", node_setreuid);
+    NODE_SET_METHOD(target, "_setegid", node_setegid);
+    NODE_SET_METHOD(target, "_seteuid", node_seteuid);
+    NODE_SET_METHOD(target, "_setregid", node_setregid);
+    NODE_SET_METHOD(target, "_setreuid", node_setreuid);
     NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
     NODE_SET_METHOD(target, "setsid", node_setsid);
 }

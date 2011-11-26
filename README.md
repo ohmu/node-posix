@@ -23,12 +23,6 @@ The missing POSIX system calls for Node.
   due to inconsistent behavior under different operating systems, see
   http://www.cs.ucdavis.edu/~hchen/paper/usenix02.html
 
-### User/Group database access
-* `getgrnam()` is not reentrant, will not be supported, see `getgrnam_r`
-* `getgrnam_r()` TODO
-* `getpwnam()` is not reentrant, will not be supported, see `getpwnam_r`
-* `getpwnam_r()` TODO
-
 ### Resource limits
 * `ulimit()` is obsolete, use `posix.setrlimit()` instead
 
@@ -50,7 +44,7 @@ TODO
 
 ## POSIX System Calls
 
-### posix.chroot(path, options)
+### posix.chroot(path)
 
 Changes the root directory of the calling process to that specified in `path`.
 This directory will be used for pathnames beginning with `/`. The root
@@ -64,6 +58,8 @@ NOTE: Please be aware of the limitations of `chroot` jails:
   http://www.unixwiz.net/techtips/chroot-practices.html
 * "How to break out of a `chroot()` jail":
   http://www.bpfh.net/simes/computing/chroot-break.html
+
+Example:
 
     posix.chroot('/somewhere/safe');
 
@@ -79,6 +75,18 @@ Returns the current process's effective user ID.
 
     console.log("Effective UID: " + posix.geteuid());
 
+### posix.getgrnam(group)
+
+Get the group database entry for the given group. `group` can be specified
+either as a numeric GID or a group name (string).
+
+    var util = require('util');
+    util.inspect(posix.getgrnam('wheel'));
+
+Example output of above:
+
+    { name: 'wheel', passwd: '*', gid: 0, members: [ 'root' ] }
+
 ### posix.getpgid(pid)
 
 Return the process group ID of the current process (`posix.getpgid(0)`) or of
@@ -92,6 +100,24 @@ a process of a given PID (`posix.getpgid(PID)`).
 Returns the parent process's PID.
 
     console.log("Parent PID: " + posix.getppid());
+
+### posix.getpwnam(user)
+
+Get the user database entry for the given user. `user` can be specified either
+as a numeric UID or a username (string).
+
+    var util = require('util');
+    util.inspect(posix.getpwnam('root'));
+
+Example output of above:
+
+    { name: 'root',
+      passwd: '*',
+      uid: 0,
+      gid: 0,
+      gecos: 'System Administrator',
+      shell: '/bin/sh',
+      dir: '/var/root' }
 
 ### posix.getrlimit(resource)
 

@@ -2,14 +2,6 @@ var assert = require('assert'),
     posix = require("../../lib/posix");
 
 assert.throws(function () {
-    posix.seteuid();
-}, /exactly 1 argument/);
-
-assert.throws(function () {
-    posix.seteuid(123, 456);
-}, /exactly 1 argument/);
-
-assert.throws(function () {
     posix.seteuid("dummyzzz1234");
 }, /user id does not exist|ENOENT/);
 
