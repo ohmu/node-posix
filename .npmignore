@@ -1,5 +1,4 @@
 Makefile
-*.md
 .git*
 .lock-wscript
 build/
@@ -11,3 +10,6 @@ c4che
 *.log
 *.o
 node_modules/
+lib/posix/*~
+test/unit/*~
+.*~
