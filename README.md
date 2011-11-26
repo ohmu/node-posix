@@ -19,9 +19,8 @@ The missing POSIX system calls for Node.
 * `getgid()` in Node core as `process.getgid`
 * `getuid()` in Node core as `process.getuid`
 * `setgid()` in Node core as `process.setgid`
-* `setregid()` TODO
-* `setuid()` in Node core as `process.setuid`, NOTE: should not be used
-  because of inconsistent behavior under different operating systems, see
+* `setuid()` in Node core as `process.setuid`, NOTE: should be used carefully
+  due to inconsistent behavior under different operating systems, see
   http://www.cs.ucdavis.edu/~hchen/paper/usenix02.html
 
 ### User/Group database access
@@ -147,10 +146,19 @@ numeric UID or a username (string).
     posix.seteuid(0); // set effective UID to "root"
     posix.seteuid("nobody");
 
+### posix.setregid(rgid, egid)
+
+Sets the Real and Effective group IDs of the current process. `rgid` and `egid`
+can be either a numeric UIDs or group names (strings). A value of `-1` means
+that the corresponding GID is left unchanged.
+
+    posix.setregid(-1, 1000); // just set the EGID to 1000
+    posix.setregid("www-data", "www-data"); // change both RGID and EGID to "www-data"
+
 ### posix.setreuid(ruid, euid)
 
 Sets the Real and Effective user IDs of the current process. `ruid` and `euid`
-can be either a numeric UIDs or a usernames (strings). A value of `-1` means
+can be either a numeric UIDs or usernames (strings). A value of `-1` means
 that the corresponding UID is left unchanged.
 
 IMPORTANT NOTE: what happens to the Saved UID when `setreuid()` is called is

@@ -43,7 +43,7 @@ function test_setreuid() {
     assert.equal(posix.getuid(), 123);
     assert.equal(posix.geteuid(), 456);
 
-    // TODO: this succeeds in OSX
+    posix.setreuid(123, 456); // force Saved UID to be set, too (OSX)
     assert.throws(function() {
         posix.setreuid(0, 0);
     }, /EPERM/);

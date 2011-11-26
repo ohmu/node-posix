@@ -311,6 +311,32 @@ static Handle<Value> node_setegid(const Arguments& args) {
     return Undefined();
 }
 
+static Handle<Value> node_setregid(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 2) {
+        return EXCEPTION("setregid: requires exactly 2 arguments");
+    }
+
+    uid_t rgid = 0;
+    Handle<Value> error = arg_to_gid(args[0], &rgid);
+    if(!error->IsNull()) {
+        return error;
+    }
+
+    uid_t egid = 0;
+    error = arg_to_gid(args[1], &egid);
+    if(!error->IsNull()) {
+        return error;
+    }
+
+    if(setregid(rgid, egid)) {
+        return ThrowException(ErrnoException(errno, "setregid"));
+    }
+
+    return Undefined();
+}
+
 static Handle<Value> node_setreuid(const Arguments& args) {
     HandleScope scope;
 
@@ -337,7 +363,6 @@ static Handle<Value> node_setreuid(const Arguments& args) {
     return Undefined();
 }
 
-
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
@@ -349,6 +374,7 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
     NODE_SET_METHOD(target, "setegid", node_setegid);
     NODE_SET_METHOD(target, "seteuid", node_seteuid);
+    NODE_SET_METHOD(target, "setregid", node_setregid);
     NODE_SET_METHOD(target, "setreuid", node_setreuid);
     NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
     NODE_SET_METHOD(target, "setsid", node_setsid);
