@@ -7,10 +7,26 @@ The missing POSIX system calls for Node.
 * Q: Why?
 * A: Because the Node core has a limited set of sometimes useful POSIX system
   calls.
-
 * Q: How mature/stable is this?
-* A: Work is very much in progress. The module is not tested or proven in
-  production use yet.
+* A: Each version released in NPM has decent automated test coverage. The
+  module is still new and not battle-hardened.
+* Q: I have a feature request/bug report...
+* A: Please submit a pull request or an issue ticket at
+  https://github.com/melor/node-posix
+
+## Roadmap
+
+### User and Group ID Management
+* `getgid()` in Node core as `process.getgid`
+* `getuid()` in Node core as `process.getuid`
+* `setegid()` TODO
+* `seteuid()` TODO
+* `setgid()` in Node core as `process.setgid`
+* `setregid()` TODO
+* `setreuid()` TODO
+* `setuid()` in Node core as `process.setuid`, NOTE: should not be used
+  because of inconsistent behavior under different operating systems, see
+  http://www.cs.ucdavis.edu/~hchen/paper/usenix02.html
 
 ## General usage
 
@@ -27,22 +43,24 @@ The working directory is also automatically set to the new root directory.
 
 NOTE: Please be aware of the limitations of `chroot` jails:
 
-* "Best Practices for UNIX `chroot()` Operations": http://www.unixwiz.net/techtips/chroot-practices.html
-* "How to break out of a `chroot()` jail": http://www.bpfh.net/simes/computing/chroot-break.html
+* "Best Practices for UNIX `chroot()` Operations":
+  http://www.unixwiz.net/techtips/chroot-practices.html
+* "How to break out of a `chroot()` jail":
+  http://www.bpfh.net/simes/computing/chroot-break.html
 
     posix.chroot('/somewhere/safe');
 
-## posix.getppid()
+## posix.getegid()
 
-Returns the parent process's PID.
+Returns the current process's effective group ID.
 
-    console.log("Parent PID: " + posix.getppid());
+    console.log("Effective GID: " + posix.getegid());
 
-## posix.setsid()
+## posix.geteuid()
 
-Creates a session and sets the process group ID. Returns the process group ID.
+Returns the current process's effective user ID.
 
-    console.log("Session ID: " + posix.setsid());
+    console.log("Effective UID: " + posix.geteuid());
 
 ## posix.getpgid(pid)
 
@@ -51,6 +69,12 @@ a process of a given PID (`posix.getpgid(PID)`).
 
     console.log("My PGID: " + posix.getpgid(0));
     console.log("init's PGID: " + posix.getpgid(1));
+
+## posix.getppid()
+
+Returns the parent process's PID.
+
+    console.log("Parent PID: " + posix.getppid());
 
 ## posix.getrlimit(resource)
 
@@ -104,6 +128,12 @@ value of `null` indicates "unlimited" (RLIM_INFINITY).
 
     // enable core dumps of unlimited size
     posix.setrlimit("core", { soft: null, hard: null });
+
+## posix.setsid()
+
+Creates a session and sets the process group ID. Returns the process group ID.
+
+    console.log("Session ID: " + posix.setsid());
 
 ## Credits
 

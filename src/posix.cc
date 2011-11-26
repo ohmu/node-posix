@@ -33,6 +33,26 @@ static Handle<Value> node_getpgid(const Arguments& args) {
     return scope.Close(Integer::New(getpgid(args[0]->IntegerValue())));
 }
 
+static Handle<Value> node_geteuid(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 0) {
+        return EXCEPTION("geteuid: takes no arguments");
+    }
+
+    return scope.Close(Integer::New(geteuid()));
+}
+
+static Handle<Value> node_getegid(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 0) {
+        return EXCEPTION("getegid: takes no arguments");
+    }
+
+    return scope.Close(Integer::New(getegid()));
+}
+
 static Handle<Value> node_setsid(const Arguments& args) {
     HandleScope scope;
 
@@ -201,10 +221,12 @@ static Handle<Value> node_setrlimit(const Arguments& args) {
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
-    NODE_SET_METHOD(target, "getppid", node_getppid);
-    NODE_SET_METHOD(target, "getpgid", node_getpgid);
-    NODE_SET_METHOD(target, "setsid", node_setsid);
     NODE_SET_METHOD(target, "chroot", node_chroot);
+    NODE_SET_METHOD(target, "getegid", node_getegid);
+    NODE_SET_METHOD(target, "geteuid", node_geteuid);
+    NODE_SET_METHOD(target, "getpgid", node_getpgid);
+    NODE_SET_METHOD(target, "getppid", node_getppid);
     NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
     NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
+    NODE_SET_METHOD(target, "setsid", node_setsid);
 }
