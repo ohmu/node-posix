@@ -20,20 +20,33 @@ The missing POSIX system calls for Node.
 * `getgid()` in Node core as `process.getgid`
 * `getuid()` in Node core as `process.getuid`
 * `setegid()` TODO
-* `seteuid()` TODO
 * `setgid()` in Node core as `process.setgid`
 * `setregid()` TODO
 * `setreuid()` TODO
 * `setuid()` in Node core as `process.setuid`, NOTE: should not be used
   because of inconsistent behavior under different operating systems, see
   http://www.cs.ucdavis.edu/~hchen/paper/usenix02.html
+* `ulimit()` obsolete, use `posix.setrlimit()` instead
 
 ## General usage
 
 * Installation: `npm install posix`
 * In your code: `var posix = require('posix');`
 
-## posix.chroot(path, options)
+## High-Level Utility Interface
+
+### Drop process privileges temporarily
+TODO
+
+### Restore process privileges
+TODO
+
+### Drop process privileges permanently
+TODO
+
+## POSIX System Calls
+
+### posix.chroot(path, options)
 
 Changes the root directory of the calling process to that specified in `path`.
 This directory will be used for pathnames beginning with `/`. The root
@@ -50,19 +63,19 @@ NOTE: Please be aware of the limitations of `chroot` jails:
 
     posix.chroot('/somewhere/safe');
 
-## posix.getegid()
+### posix.getegid()
 
 Returns the current process's effective group ID.
 
     console.log("Effective GID: " + posix.getegid());
 
-## posix.geteuid()
+### posix.geteuid()
 
 Returns the current process's effective user ID.
 
     console.log("Effective UID: " + posix.geteuid());
 
-## posix.getpgid(pid)
+### posix.getpgid(pid)
 
 Return the process group ID of the current process (`posix.getpgid(0)`) or of
 a process of a given PID (`posix.getpgid(PID)`).
@@ -70,13 +83,13 @@ a process of a given PID (`posix.getpgid(PID)`).
     console.log("My PGID: " + posix.getpgid(0));
     console.log("init's PGID: " + posix.getpgid(1));
 
-## posix.getppid()
+### posix.getppid()
 
 Returns the parent process's PID.
 
     console.log("Parent PID: " + posix.getppid());
 
-## posix.getrlimit(resource)
+### posix.getrlimit(resource)
 
 Get resource limits. (See getrlimit(2).)
 
@@ -113,6 +126,14 @@ space) in bytes.
     var limits = posix.getrlimit("nofile");
     console.log('Current limits: soft=' + limits.soft + ", max=" + limits.hard);
 
+### posix.seteuid(uid)
+
+Sets the effective user ID of the current process. `uid` can be either a
+numeric UID or a username (string).
+
+    posix.seteuid(0); // set effective UID to root
+    posix.seteuid("nobody");
+
 ### posix.setrlimit(resource, limits)
 
 Set resource limits. (See setrlimit(2).) Supported resource types are listed
@@ -129,7 +150,7 @@ value of `null` indicates "unlimited" (RLIM_INFINITY).
     // enable core dumps of unlimited size
     posix.setrlimit("core", { soft: null, hard: null });
 
-## posix.setsid()
+### posix.setsid()
 
 Creates a session and sets the process group ID. Returns the process group ID.
 
@@ -138,6 +159,7 @@ Creates a session and sets the process group ID. Returns the process group ID.
 ## Credits
 
 * Some of the documentation strings stolen from Linux man pages.
+* `posix.seteuid` etc. implementation is based on Node core project `SetUid`
 
 ## LICENSE
 
