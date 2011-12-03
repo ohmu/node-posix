@@ -6,6 +6,7 @@
 #include <limits.h> // PATH_MAX
 #include <pwd.h> // getpwnam, passwd
 #include <grp.h> // getgrnam, group
+#include <syslog.h> // openlog, closelog, syslog, setlogmask
 
 #define EXCEPTION(msg) ThrowException(Exception::Error(String::New(msg)))
 
@@ -94,12 +95,12 @@ static Handle<Value> node_chroot(const Arguments& args) {
     return Undefined();
 }
 
-struct rlimit_name_to_res_t {
+struct name_to_int_t {
   const char* name;
   int resource;
 };
 
-static const rlimit_name_to_res_t rlimit_name_to_res[] = {
+static const name_to_int_t rlimit_name_to_res[] = {
   { "core", RLIMIT_CORE },
   { "cpu", RLIMIT_CPU },
   { "data", RLIMIT_DATA },
@@ -124,7 +125,7 @@ static Handle<Value> node_getrlimit(const Arguments& args) {
 
     String::Utf8Value rlimit_name(args[0]->ToString());
     int resource = -1;
-    for(const rlimit_name_to_res_t* item = rlimit_name_to_res;
+    for(const name_to_int_t* item = rlimit_name_to_res;
         item->name; ++item) {
         if(!strcmp(*rlimit_name, item->name)) {
             resource = item->resource;
@@ -158,7 +159,7 @@ static Handle<Value> node_setrlimit(const Arguments& args) {
 
     String::Utf8Value rlimit_name(args[0]->ToString());
     int resource = -1;
-    for(const rlimit_name_to_res_t* item = rlimit_name_to_res;
+    for(const name_to_int_t* item = rlimit_name_to_res;
         item->name; ++item) {
         if(!strcmp(*rlimit_name, item->name)) {
             resource = item->resource;
@@ -364,10 +365,104 @@ static Handle<Value> node_setreuid(const Arguments& args) {
     return Undefined();
 }
 
+static Handle<Value> node_openlog(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 3) {
+        return EXCEPTION("openlog: requires exactly 3 arguments");
+    }
+
+    String::Utf8Value ident(args[0]->ToString());
+    if(!args[1]->IsNumber() || !args[2]->IsNumber()) {
+        return EXCEPTION("openlog: invalid argument values");
+    }
+    // note: openlog does not ever fail, no return value
+    openlog(*ident, args[1]->Int32Value(), args[2]->Int32Value());
+
+    return Undefined();
+}
+
+static Handle<Value> node_closelog(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 0) {
+        return EXCEPTION("closelog: does not take any arguments");
+    }
+
+    // note: closelog does not ever fail, no return value
+    closelog();
+
+    return Undefined();
+}
+
+static Handle<Value> node_syslog(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 2) {
+        return EXCEPTION("syslog: requires exactly 2 arguments");
+    }
+
+    String::Utf8Value message(args[1]->ToString());
+    // note: syslog does not ever fail, no return value
+    syslog(args[0]->Int32Value(), "%s", *message);
+
+    return Undefined();
+}
+
+static Handle<Value> node_setlogmask(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 1) {
+        return EXCEPTION("setlogmask: takes exactly 1 argument");
+    }
+
+    return scope.Close(Integer::New(setlogmask(args[0]->Int32Value())));
+}
+
+#define ADD_MASK_FLAG(name, flag) \
+    obj->Set(String::New(name), Integer::New(flag)); \
+    obj->Set(String::New("mask_" name), Integer::New(LOG_MASK(flag)));
+
+static Handle<Value> node_update_syslog_constants(const Arguments& args) {
+    HandleScope scope;
+
+    if((args.Length() != 1) || (!args[0]->IsObject())) {
+        return EXCEPTION("invalid arguments");
+    }
+
+    Local<Object> obj = args[0]->ToObject();
+    ADD_MASK_FLAG("emerg", LOG_EMERG);
+    ADD_MASK_FLAG("alert", LOG_ALERT);
+    ADD_MASK_FLAG("crit", LOG_CRIT);
+    ADD_MASK_FLAG("err", LOG_ERR);
+    ADD_MASK_FLAG("warning", LOG_WARNING);
+    ADD_MASK_FLAG("notice", LOG_NOTICE);
+    ADD_MASK_FLAG("info", LOG_INFO);
+    ADD_MASK_FLAG("debug", LOG_DEBUG);
+
+    obj->Set(String::New("user"), Integer::New(LOG_USER));
+    obj->Set(String::New("local0"), Integer::New(LOG_LOCAL0));
+    obj->Set(String::New("local1"), Integer::New(LOG_LOCAL1));
+    obj->Set(String::New("local2"), Integer::New(LOG_LOCAL2));
+    obj->Set(String::New("local3"), Integer::New(LOG_LOCAL3));
+    obj->Set(String::New("local4"), Integer::New(LOG_LOCAL4));
+    obj->Set(String::New("local5"), Integer::New(LOG_LOCAL5));
+    obj->Set(String::New("local6"), Integer::New(LOG_LOCAL6));
+    obj->Set(String::New("local7"), Integer::New(LOG_LOCAL7));
+    obj->Set(String::New("pid"), Integer::New(LOG_PID));
+    obj->Set(String::New("cons"), Integer::New(LOG_CONS));
+    obj->Set(String::New("ndelay"), Integer::New(LOG_NDELAY));
+    obj->Set(String::New("odelay"), Integer::New(LOG_ODELAY));
+    obj->Set(String::New("nowait"), Integer::New(LOG_NOWAIT));
+
+    return Undefined();
+}
+
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
     NODE_SET_METHOD(target, "chroot", node_chroot);
+    NODE_SET_METHOD(target, "closelog", node_closelog);
     NODE_SET_METHOD(target, "getegid", node_getegid);
     NODE_SET_METHOD(target, "geteuid", node_geteuid);
     NODE_SET_METHOD(target, "getpgid", node_getpgid);
@@ -375,10 +470,15 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "getpwnam", node_getpwnam);
     NODE_SET_METHOD(target, "getgrnam", node_getgrnam);
     NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
-    NODE_SET_METHOD(target, "_setegid", node_setegid);
-    NODE_SET_METHOD(target, "_seteuid", node_seteuid);
-    NODE_SET_METHOD(target, "_setregid", node_setregid);
-    NODE_SET_METHOD(target, "_setreuid", node_setreuid);
+    NODE_SET_METHOD(target, "openlog", node_openlog);
+    NODE_SET_METHOD(target, "setegid", node_setegid);
+    NODE_SET_METHOD(target, "seteuid", node_seteuid);
+    NODE_SET_METHOD(target, "setlogmask", node_setlogmask);
+    NODE_SET_METHOD(target, "setregid", node_setregid);
+    NODE_SET_METHOD(target, "setreuid", node_setreuid);
     NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
     NODE_SET_METHOD(target, "setsid", node_setsid);
+    NODE_SET_METHOD(target, "syslog", node_syslog);
+    NODE_SET_METHOD(target, "update_syslog_constants",
+                    node_update_syslog_constants);
 }

@@ -13,6 +13,16 @@ The missing POSIX system calls for Node.
 * A: Please submit a pull request or an issue ticket at
   https://github.com/melor/node-posix
 
+## Related modules
+
+Other extension modules that provide POSIX/Unix/Linux/BSD functionality:
+
+* glob() http://search.npmjs.org/#/glob
+* getrusage() http://search.npmjs.org/#/getrusage
+* chroot(), daemonization http://search.npmjs.org/#/daemon-tools
+* iconv() http://search.npmjs.org/#/iconv
+* mmap() http://search.npmjs.org/#/mmap
+
 ## Roadmap
 
 ### User and Group ID Management
@@ -217,6 +227,73 @@ value of `null` indicates "unlimited" (RLIM_INFINITY).
 Creates a session and sets the process group ID. Returns the process group ID.
 
     console.log("Session ID: " + posix.setsid());
+
+## Syslog
+
+### posix.openlog(identity, options, facility)
+
+Open a connection to the logger.
+
+Arguments:
+
+* `identity` - defines the name of the process visible in the logged entries.
+* `options` -  set of option flags (see below).
+* `facility` - facility code for the logged messages (see below).
+
+Options:
+
+* `"cons"` - Log to the system console on error.
+* `"ndelay"` - Connect to syslog daemon immediately.
+* `"nowait"` - Do not wait for child processes.
+* `"odelay"` - Delay open until syslog() is called.
+* `"pid"` - Log the process ID with each message.
+
+Facilities:
+
+* `"kern"`
+* `"user"`
+* `"mail"`
+* `"news"`
+* `"uucp"`
+* `"daemon"`
+* `"auth"`
+* `"cron"`
+* `"lpr"`
+* `"local0"` .. `"local7"`
+
+Example:
+
+  posix.openlog("myprog", {odelay: true, pid: true}, "local7");
+
+### posix.closelog()
+
+Close connection to the logger.
+
+### posix.setlogmask(mask)
+
+Sets a priority mask for log messages. Further `posix.syslog()` messages are
+only sent out if their priority is included in the mask. Priorities are listed
+under `posix.syslog()`.
+
+    // only send the most critical messages
+    posix.setlogmask({emerg:true, alert: true, crit: true});
+
+### posix.syslog(priority, message)
+
+Send a message to the syslog logger using the given `priority`.
+
+Priorities:
+
+* `"emerg"`
+* `"alert"`
+* `"crit"`
+* `"err"`
+* `"warning"`
+* `"notice"`
+* `"info"`
+* `"debug"`
+
+    posix.syslog("info", "hello, world!");
 
 ## Credits
 
