@@ -22,6 +22,7 @@ Other extension modules that provide POSIX/Unix/Linux/BSD functionality:
 * chroot(), daemonization http://search.npmjs.org/#/daemon-tools
 * iconv() http://search.npmjs.org/#/iconv
 * mmap() http://search.npmjs.org/#/mmap
+* PAM authentication, flock() and mkstemp() http://search.npmjs.org/#/unixlib
 
 ## Roadmap
 

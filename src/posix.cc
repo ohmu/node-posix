@@ -365,6 +365,11 @@ static Handle<Value> node_setreuid(const Arguments& args) {
     return Undefined();
 }
 
+// openlog() first argument (const char* ident) is not guaranteed to be
+// copied within the openlog() call so we need to keep it in a safe location
+static const size_t MAX_SYSLOG_IDENT=100;
+static char syslog_ident[MAX_SYSLOG_IDENT+1] = {0};
+
 static Handle<Value> node_openlog(const Arguments& args) {
     HandleScope scope;
 
@@ -373,11 +378,13 @@ static Handle<Value> node_openlog(const Arguments& args) {
     }
 
     String::Utf8Value ident(args[0]->ToString());
+    strncpy(syslog_ident, *ident, MAX_SYSLOG_IDENT);
+    syslog_ident[MAX_SYSLOG_IDENT] = 0;
     if(!args[1]->IsNumber() || !args[2]->IsNumber()) {
         return EXCEPTION("openlog: invalid argument values");
     }
     // note: openlog does not ever fail, no return value
-    openlog(*ident, args[1]->Int32Value(), args[2]->Int32Value());
+    openlog(syslog_ident, args[1]->Int32Value(), args[2]->Int32Value());
 
     return Undefined();
 }
