@@ -447,7 +447,19 @@ static Handle<Value> node_update_syslog_constants(const Arguments& args) {
     ADD_MASK_FLAG("info", LOG_INFO);
     ADD_MASK_FLAG("debug", LOG_DEBUG);
 
+    // facility constants
+    obj->Set(String::New("auth"), Integer::New(LOG_AUTH));
+    obj->Set(String::New("authpriv"), Integer::New(LOG_AUTHPRIV));
+    obj->Set(String::New("cron"), Integer::New(LOG_CRON));
+    obj->Set(String::New("daemon"), Integer::New(LOG_DAEMON));
+    obj->Set(String::New("ftp"), Integer::New(LOG_FTP));
+    obj->Set(String::New("kern"), Integer::New(LOG_KERN));
+    obj->Set(String::New("lpr"), Integer::New(LOG_LPR));
+    obj->Set(String::New("mail"), Integer::New(LOG_MAIL));
+    obj->Set(String::New("news"), Integer::New(LOG_NEWS));
+    obj->Set(String::New("syslog"), Integer::New(LOG_SYSLOG));
     obj->Set(String::New("user"), Integer::New(LOG_USER));
+    obj->Set(String::New("uucp"), Integer::New(LOG_UUCP));
     obj->Set(String::New("local0"), Integer::New(LOG_LOCAL0));
     obj->Set(String::New("local1"), Integer::New(LOG_LOCAL1));
     obj->Set(String::New("local2"), Integer::New(LOG_LOCAL2));
@@ -456,6 +468,8 @@ static Handle<Value> node_update_syslog_constants(const Arguments& args) {
     obj->Set(String::New("local5"), Integer::New(LOG_LOCAL5));
     obj->Set(String::New("local6"), Integer::New(LOG_LOCAL6));
     obj->Set(String::New("local7"), Integer::New(LOG_LOCAL7));
+
+    // option constants
     obj->Set(String::New("pid"), Integer::New(LOG_PID));
     obj->Set(String::New("cons"), Integer::New(LOG_CONS));
     obj->Set(String::New("ndelay"), Integer::New(LOG_NDELAY));
