@@ -43,17 +43,6 @@ Other extension modules that provide POSIX/Unix/Linux/BSD functionality:
 * Installation: `npm install posix`
 * In your code: `var posix = require('posix');`
 
-## High-Level Utility Interface
-
-### Drop process privileges temporarily
-TODO
-
-### Restore process privileges
-TODO
-
-### Drop process privileges permanently
-TODO
-
 ## POSIX System Calls
 
 ### posix.chroot(path)
@@ -79,13 +68,13 @@ Example:
 
 Returns the current process's effective group ID.
 
-    console.log("Effective GID: " + posix.getegid());
+    console.log('Effective GID: ' + posix.getegid());
 
 ### posix.geteuid()
 
 Returns the current process's effective user ID.
 
-    console.log("Effective UID: " + posix.geteuid());
+    console.log('Effective UID: ' + posix.geteuid());
 
 ### posix.getgrnam(group)
 
@@ -104,14 +93,14 @@ Example output of above:
 Return the process group ID of the current process (`posix.getpgid(0)`) or of
 a process of a given PID (`posix.getpgid(PID)`).
 
-    console.log("My PGID: " + posix.getpgid(0));
-    console.log("init's PGID: " + posix.getpgid(1));
+    console.log('My PGID: ' + posix.getpgid(0));
+    console.log('init's PGID: ' + posix.getpgid(1));
 
 ### posix.getppid()
 
 Returns the parent process's PID.
 
-    console.log("Parent PID: " + posix.getppid());
+    console.log('Parent PID: ' + posix.getppid());
 
 ### posix.getpwnam(user)
 
@@ -165,8 +154,8 @@ reaching this limit, a SIGSEGV signal is generated.
 `'as'` (RLIMIT_AS) The maximum size of the process's virtual memory (address
 space) in bytes.
 
-    var limits = posix.getrlimit("nofile");
-    console.log('Current limits: soft=' + limits.soft + ", max=" + limits.hard);
+    var limits = posix.getrlimit('nofile');
+    console.log('Current limits: soft=' + limits.soft + ', max=' + limits.hard);
 
 ### posix.setegid(gid)
 
@@ -174,7 +163,7 @@ Sets the Effective group ID of the current process. `gid` can be either a
 numeric GID or a group name (string).
 
     posix.setegid(0); // set effective group UID to "wheel"
-    posix.setegid("nobody");
+    posix.setegid('nobody');
 
 ### posix.seteuid(uid)
 
@@ -182,7 +171,7 @@ Sets the Effective user ID of the current process. `uid` can be either a
 numeric UID or a username (string).
 
     posix.seteuid(0); // set effective UID to "root"
-    posix.seteuid("nobody");
+    posix.seteuid('nobody');
 
 ### posix.setregid(rgid, egid)
 
@@ -191,7 +180,7 @@ can be either a numeric UIDs or group names (strings). A value of `-1` means
 that the corresponding GID is left unchanged.
 
     posix.setregid(-1, 1000); // just set the EGID to 1000
-    posix.setregid("www-data", "www-data"); // change both RGID and EGID to "www-data"
+    posix.setregid('www-data', 'www-data'); // change both RGID and EGID to "www-data"
 
 ### posix.setreuid(ruid, euid)
 
@@ -206,7 +195,7 @@ simply by calling `setreuid(0, 0)`. A workaround for this is to call
 `posix.setreuid(ruid, euid)` twice with the same arguments.
 
     posix.setreuid(-1, 1000); // just set the EUID to 1000
-    posix.setreuid("nobody", "nobody"); // change both RUID and EUID to "nobody"
+    posix.setreuid('nobody', 'nobody'); // change both RUID and EUID to "nobody"
 
 ### posix.setrlimit(resource, limits)
 
@@ -219,16 +208,16 @@ either `soft` or `hard` key is not specifing in the `limits` object. A limit
 value of `null` indicates "unlimited" (RLIM_INFINITY).
 
     // raise maximum number of open file descriptors to 10k, hard limit is left unchanged
-    posix.setrlimit("nofile", { soft: 10000 });
+    posix.setrlimit('nofile', { soft: 10000 });
 
     // enable core dumps of unlimited size
-    posix.setrlimit("core", { soft: null, hard: null });
+    posix.setrlimit('core', { soft: null, hard: null });
 
 ### posix.setsid()
 
 Creates a session and sets the process group ID. Returns the process group ID.
 
-    console.log("Session ID: " + posix.setsid());
+    console.log('Session ID: ' + posix.setsid());
 
 ## Syslog
 
@@ -244,28 +233,32 @@ Arguments:
 
 Options:
 
-* `"cons"` - Log to the system console on error.
-* `"ndelay"` - Connect to syslog daemon immediately.
-* `"nowait"` - Do not wait for child processes.
-* `"odelay"` - Delay open until syslog() is called.
-* `"pid"` - Log the process ID with each message.
+* `'cons'` - Log to the system console on error.
+* `'ndelay'` - Connect to syslog daemon immediately.
+* `'nowait'` - Do not wait for child processes.
+* `'odelay'` - Delay open until syslog() is called.
+* `'pid'` - Log the process ID with each message.
 
 Facilities:
 
-* `"kern"`
-* `"user"`
-* `"mail"`
-* `"news"`
-* `"uucp"`
-* `"daemon"`
-* `"auth"`
-* `"cron"`
-* `"lpr"`
-* `"local0"` .. `"local7"`
+NOTE: only `'user'` and `'local0'` .. `'local7'` are defined in the POSIX
+standard. However, the other codes should be pretty well supported on most
+platforms.
+
+* `'kern'`
+* `'user'`
+* `'mail'`
+* `'news'`
+* `'uucp'`
+* `'daemon'`
+* `'auth'`
+* `'cron'`
+* `'lpr'`
+* `'local0'` .. `'local7'`
 
 Example:
 
-  posix.openlog("myprog", {odelay: true, pid: true}, "local7");
+    posix.openlog('myprog', {odelay: true, pid: true}, 'local7');
 
 ### posix.closelog()
 
@@ -286,25 +279,28 @@ Send a message to the syslog logger using the given `priority`.
 
 Priorities:
 
-* `"emerg"`
-* `"alert"`
-* `"crit"`
-* `"err"`
-* `"warning"`
-* `"notice"`
-* `"info"`
-* `"debug"`
+* `'emerg'`
+* `'alert'`
+* `'crit'`
+* `'err'`
+* `'warning'`
+* `'notice'`
+* `'info'`
+* `'debug'`
 
-    posix.syslog("info", "hello, world!");
+Example:
+
+    posix.syslog('info', 'hello, world!');
 
 ## Credits
 
 * Some of the documentation strings stolen from Linux man pages.
 * `posix.seteuid` etc. implementation is based on Node core project `SetUid`
+* Fixes: Dan Bornstein
 
 ## LICENSE
 
-Copyright (c) 2011 Mika Eloranta
+Copyright (c) 2011-2012 Mika Eloranta
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
