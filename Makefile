@@ -9,10 +9,7 @@ test: test-unit
 bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
 
-build/default/binding.node:
-	@node-waf configure build
-
 test-unit:
 	@find test/unit -name "test-*.js" | $(node-command)
 
-.PHONY : test build/default/binding.node
+.PHONY : test
