@@ -449,10 +449,14 @@ static Handle<Value> node_update_syslog_constants(const Arguments& args) {
 
     // facility constants
     obj->Set(String::New("auth"), Integer::New(LOG_AUTH));
+#ifdef LOG_AUTHPRIV
     obj->Set(String::New("authpriv"), Integer::New(LOG_AUTHPRIV));
+#endif
     obj->Set(String::New("cron"), Integer::New(LOG_CRON));
     obj->Set(String::New("daemon"), Integer::New(LOG_DAEMON));
+#ifdef LOG_FTP
     obj->Set(String::New("ftp"), Integer::New(LOG_FTP));
+#endif
     obj->Set(String::New("kern"), Integer::New(LOG_KERN));
     obj->Set(String::New("lpr"), Integer::New(LOG_LPR));
     obj->Set(String::New("mail"), Integer::New(LOG_MAIL));
