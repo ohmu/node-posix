@@ -18,8 +18,7 @@
     "dependencies" : {
     },
     "scripts" : {
-        "test" : "make test",
-        "install" : "node-waf configure build || true"
+        "test" : "make test"
     },
     "engines" : { "node": ">= 0.4.0" }
 }
