@@ -111,6 +111,15 @@ static const name_to_int_t rlimit_name_to_res[] = {
   { 0, 0 }
 };
 
+// return null if value is RLIM_INFINITY, otherwise the uint value
+static Handle<Value> rlimit_value(rlim_t limit) {
+    if(limit == RLIM_INFINITY) {
+        return Null();
+    } else {
+        return Number::New((double)limit);
+    }
+}
+
 static Handle<Value> node_getrlimit(const Arguments& args) {
     HandleScope scope;
 
@@ -142,10 +151,8 @@ static Handle<Value> node_getrlimit(const Arguments& args) {
     }
 
     Local<Object> info = Object::New();
-    info->Set(String::New("soft"),
-              Integer::NewFromUnsigned(limit.rlim_cur));
-    info->Set(String::New("hard"),
-              Integer::NewFromUnsigned(limit.rlim_max));
+    info->Set(String::New("soft"), rlimit_value(limit.rlim_cur));
+    info->Set(String::New("hard"), rlimit_value(limit.rlim_max));
 
     return scope.Close(info);
 }

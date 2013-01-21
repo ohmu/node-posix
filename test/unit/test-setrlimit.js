@@ -30,11 +30,18 @@ try {
 }
 catch(e) { }
 
+// verify that RLIM_INFINITY <-> null conversion works both ways
+posix.setrlimit("cpu", {soft: null, hard: null});
+var now = posix.getrlimit("cpu");
+assert.ok(now.soft === null);
+assert.ok(now.hard === null);
+
 // make some "nofile" adjustments
 var begin = posix.getrlimit("nofile")
 console.log("begin: " + JSON.stringify(begin));
-posix.setrlimit("nofile", {soft: 500})
-var now = posix.getrlimit("nofile")
+posix.setrlimit("nofile", {soft: 500});
+now = posix.getrlimit("nofile");
+console.log("now: " + JSON.stringify(now));
 assert.equal(begin.hard, now.hard);
 console.log("adjusted: " + JSON.stringify(now));
 assert.equal(now.soft, 500);
@@ -54,4 +61,3 @@ for(var i in limits) {
         console.log(limits[i] + " now: " + JSON.stringify(limit2));
     }
 }
-

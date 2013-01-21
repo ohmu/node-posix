@@ -34,7 +34,6 @@ catch(e) { }
 for(var i in limits) {
     var limit = posix.getrlimit(limits[i]);
     console.log("getrlimit " + limits[i] + ": " + JSON.stringify(limit));
-    assert.equal(true, typeof limit.soft == 'number');
-    assert.equal(true, typeof limit.hard == 'number');
+    assert.equal(true, typeof limit.soft == 'number' || limit.soft === null);
+    assert.equal(true, typeof limit.hard == 'number' || limit.hard === null);
 }
-

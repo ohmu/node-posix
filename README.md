@@ -129,6 +129,8 @@ corresponding resource. The `hard` limit acts as a ceiling for the soft
 limit: an unprivileged process may only set its soft limit to a value in the
 range from 0 up to the hard limit, and (irreversibly) lower its hard limit.
 
+A limit value of `null` indicates "unlimited" (RLIM_INFINITY).
+
 Supported resources:
 
 `'core'` (RLIMIT_CORE) Maximum size of core file.  When 0 no core dump files
