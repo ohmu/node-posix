@@ -490,6 +490,26 @@ static Handle<Value> node_update_syslog_constants(const Arguments& args) {
     return Undefined();
 }
 
+static Handle<Value> node_gethostname(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 0) {
+        return EXCEPTION("gethostname: takes no arguments");
+    }
+#ifndef HOST_NAME_MAX
+# define HOST_NAME_MAX 255
+#endif
+
+    char hostname[HOST_NAME_MAX];
+
+    int rc = gethostname(hostname, HOST_NAME_MAX);
+    if (rc != 0) {
+        return ThrowException(ErrnoException(errno, "gethostname"));
+    }
+
+    return scope.Close(String::New(hostname));
+}
+
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
@@ -513,4 +533,5 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "syslog", node_syslog);
     NODE_SET_METHOD(target, "update_syslog_constants",
                     node_update_syslog_constants);
+    NODE_SET_METHOD(target, "gethostname", node_gethostname);
 }
