@@ -490,6 +490,91 @@ static Handle<Value> node_update_syslog_constants(const Arguments& args) {
     return Undefined();
 }
 
+static Handle<Value> node_gethostname(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 0) {
+        return EXCEPTION("gethostname: takes no arguments");
+    }
+#ifndef HOST_NAME_MAX
+# define HOST_NAME_MAX 255
+#endif
+
+    char hostname[HOST_NAME_MAX];
+
+    int rc = gethostname(hostname, HOST_NAME_MAX);
+    if (rc != 0) {
+        return ThrowException(ErrnoException(errno, "gethostname"));
+    }
+
+    return scope.Close(String::New(hostname));
+}
+
+static Handle<Value> node_getdomainname(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 0) {
+        return EXCEPTION("getdomainname: takes no arguments");
+    }
+#ifndef DOMAIN_NAME_MAX
+# define DOMAIN_NAME_MAX 64
+#endif
+
+    char domainname[DOMAIN_NAME_MAX];
+
+    int rc = getdomainname(domainname, DOMAIN_NAME_MAX);
+    if (rc != 0) {
+        return ThrowException(ErrnoException(errno, "getdomainname"));
+    }
+
+    return scope.Close(String::New(domainname));
+}
+
+static Handle<Value> node_sethostname(const Arguments& args) {
+    HandleScope scope;
+
+    if (args.Length() != 1) {
+        return EXCEPTION("sethostname: takes exactly 1 argument");
+    }
+
+    if (!args[0]->IsString()) {
+        return EXCEPTION("sethostname: first argument must be a string");
+    }
+
+    String::Utf8Value str(args[0]);
+    const char * hostname = *str;
+
+    int rc = sethostname(hostname, str.length());
+    if (rc != 0) {
+        return ThrowException(ErrnoException(errno, "sethostname"));
+    }
+
+    return scope.Close(Undefined());
+}
+
+static Handle<Value> node_setdomainname(const Arguments& args) {
+    HandleScope scope;
+
+    if (args.Length() != 1) {
+        return EXCEPTION("setdomainname: takes exactly 1 argument");
+    }
+
+    if (!args[0]->IsString()) {
+        return EXCEPTION("setdomainname: first argument must be a string");
+    }
+
+    String::Utf8Value str(args[0]);
+    const char * domainname = *str;
+
+    int rc = setdomainname(domainname, str.length());
+    if (rc != 0) {
+        return ThrowException(ErrnoException(errno, "setdomainname"));
+    }
+
+    return scope.Close(Undefined());
+}
+
+
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
@@ -513,4 +598,8 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "syslog", node_syslog);
     NODE_SET_METHOD(target, "update_syslog_constants",
                     node_update_syslog_constants);
+    NODE_SET_METHOD(target, "gethostname", node_gethostname);
+    NODE_SET_METHOD(target, "getdomainname", node_getdomainname);
+    NODE_SET_METHOD(target, "sethostname", node_sethostname);
+    NODE_SET_METHOD(target, "setdomainname", node_setdomainname);
 }
