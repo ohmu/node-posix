@@ -530,6 +530,29 @@ static Handle<Value> node_getdomainname(const Arguments& args) {
     return scope.Close(String::New(domainname));
 }
 
+static Handle<Value> node_sethostname(const Arguments& args) {
+    HandleScope scope;
+
+    if (args.Length() != 1) {
+        return EXCEPTION("sethostname: takes exactly 1 argument");
+    }
+
+    if (!args[0]->IsString()) {
+        return EXCEPTION("sethostname: first argument must be a string");
+    }
+
+    String::Utf8Value str(args[0]);
+    const char * hostname = *str;
+
+    int rc = sethostname(hostname, str.length());
+    if (rc != 0) {
+        return ThrowException(ErrnoException(errno, "sethostname"));
+    }
+
+    return scope.Close(Undefined());
+}
+
+
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
@@ -555,4 +578,5 @@ extern "C" void init(Handle<Object> target)
                     node_update_syslog_constants);
     NODE_SET_METHOD(target, "gethostname", node_gethostname);
     NODE_SET_METHOD(target, "getdomainname", node_getdomainname);
+    NODE_SET_METHOD(target, "sethostname", node_sethostname);
 }
