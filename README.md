@@ -25,18 +25,18 @@ Other extension modules that provide POSIX/Unix/Linux/BSD functionality:
 * mmap() http://search.npmjs.org/#/mmap
 * PAM authentication, flock() and mkstemp() http://search.npmjs.org/#/unixlib
 
-## Roadmap
+## General Information
 
 ### User and Group ID Management
-* `getgid()` in Node core as `process.getgid`
-* `getuid()` in Node core as `process.getuid`
-* `setgid()` in Node core as `process.setgid`
-* `setuid()` in Node core as `process.setuid`, NOTE: should be used carefully
-  due to inconsistent behavior under different operating systems, see
-  http://www.cs.ucdavis.edu/~hchen/paper/usenix02.html
+* `posix.getgid()` is an alias to Node core `process.getgid()`
+* `posix.getuid()` is an alias to Node core `process.getuid()`
+* `posix.setgid()` is an alias to Node core `process.setgid()`
+* `posix.setuid()` is an alias to Node core `process.setuid()`,
+  NOTE: should be used carefully  due to inconsistent behavior under different
+  operating systems, see http://www.cs.ucdavis.edu/~hchen/paper/usenix02.html
 
 ### Resource limits
-* `ulimit()` is obsolete, use `posix.setrlimit()` instead
+* `ulimit()` is obsolete, use `posix.setrlimit()` instead.
 
 ## General usage
 
@@ -294,15 +294,42 @@ Example:
 
     posix.syslog('info', 'hello, world!');
 
+## hostname/domainname
+
+### posix.gethostname()
+
+Returns the hostname of the operating system.
+
+### posix.sethostname(hostname)
+
+Sets the hostname of the operating system.
+
+Example:
+
+    posix.sethostname('beefheart');
+
+### posix.getdomainname()
+
+Returns the domain name of the operating system.
+
+### posix.setdomainname(domainname)
+
+Sets the domain name of the operating system.
+
+Example:
+
+    posix.setdomainname('magicband.edu');
+
 ## Credits
 
 * Some of the documentation strings stolen from Linux man pages.
 * `posix.seteuid` etc. implementation is based on Node core project `SetUid`
 * Fixes: Dan Bornstein
+* `gethostname`, `sethostname`, `getdomainname`, `setdomainname`: Igor Pashev
 
 ## LICENSE
 
-Copyright (c) 2011-2012 Mika Eloranta
+Copyright (c) 2011-2013 Mika Eloranta
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
