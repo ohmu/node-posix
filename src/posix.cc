@@ -510,6 +510,26 @@ static Handle<Value> node_gethostname(const Arguments& args) {
     return scope.Close(String::New(hostname));
 }
 
+static Handle<Value> node_getdomainname(const Arguments& args) {
+    HandleScope scope;
+
+    if(args.Length() != 0) {
+        return EXCEPTION("getdomainname: takes no arguments");
+    }
+#ifndef DOMAIN_NAME_MAX
+# define DOMAIN_NAME_MAX 64
+#endif
+
+    char domainname[DOMAIN_NAME_MAX];
+
+    int rc = getdomainname(domainname, DOMAIN_NAME_MAX);
+    if (rc != 0) {
+        return ThrowException(ErrnoException(errno, "getdomainname"));
+    }
+
+    return scope.Close(String::New(domainname));
+}
+
 extern "C" void init(Handle<Object> target)
 {
     HandleScope scope;
@@ -534,4 +554,5 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "update_syslog_constants",
                     node_update_syslog_constants);
     NODE_SET_METHOD(target, "gethostname", node_gethostname);
+    NODE_SET_METHOD(target, "getdomainname", node_getdomainname);
 }
