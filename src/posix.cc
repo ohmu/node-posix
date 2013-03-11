@@ -603,3 +603,5 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "sethostname", node_sethostname);
     NODE_SET_METHOD(target, "setdomainname", node_setdomainname);
 }
+
+NODE_MODULE(posix, init);
