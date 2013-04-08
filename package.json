@@ -6,8 +6,7 @@
         "posix", "rlimit", "getrlimit", "setrlimit", "ulimit", "setuid",
         "setgid", "seteuid", "setegid", "chroot", "setreuid", "setregid",
         "getpgrp", "setsid", "setpgid", "getpwnam", "getgrnam", "uid", "gid",
-        "syslog", "setlogmask", "gethostname", "sethostname",
-        "getdomainname", "setdomainname"
+        "syslog", "setlogmask", "gethostname", "sethostname"
     ],
     "homepage": "http://github.com/melor/node-posix",
     "repository" : {

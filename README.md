@@ -294,7 +294,7 @@ Example:
 
     posix.syslog('info', 'hello, world!');
 
-## hostname/domainname
+## hostname
 
 ### posix.gethostname()
 
@@ -308,24 +308,12 @@ Example:
 
     posix.sethostname('beefheart');
 
-### posix.getdomainname()
-
-Returns the domain name of the operating system.
-
-### posix.setdomainname(domainname)
-
-Sets the domain name of the operating system.
-
-Example:
-
-    posix.setdomainname('magicband.edu');
-
 ## Credits
 
 * Some of the documentation strings stolen from Linux man pages.
 * `posix.seteuid` etc. implementation is based on Node core project `SetUid`
 * Fixes: Dan Bornstein
-* `gethostname`, `sethostname`, `getdomainname`, `setdomainname`: Igor Pashev
+* `gethostname`, `sethostname`: Igor Pashev
 
 ## LICENSE
 
