@@ -1,6 +1,7 @@
 # node-posix
 
 The missing POSIX system calls for Node.
+
 [![Build Status](https://secure.travis-ci.org/melor/node-posix.png)](http://travis-ci.org/melor/node-posix)
 
 ## FAQ
@@ -13,6 +14,23 @@ The missing POSIX system calls for Node.
 * Q: I have a feature request/bug report...
 * A: Please submit a pull request or an issue ticket at
   https://github.com/melor/node-posix
+
+## Compatibility and API Stability
+
+* Some degree of POSIX compliance is sought after, but this module is not always
+  restricted by the standard.
+  For example `posix.openlog()` also supports non-POSIX facility codes.
+* node-posix version format: *MAJOR.MINOR.PATCH*
+* *PATCH* version upgrades will not break backward compatibility, so it should be
+  safe to upgrade from 1.0.0 to 1.0.1, 1.0.2, etc.
+* *MAJOR* and *MINOR* version upgrades *probably* break backward-compatibility in
+  some way, which may or may not affect your module.
+* Recommended way to define a version dependency to node-posix in your
+  `package.json`: `"dependencies": { "posix": "1.0.x" }`
+* Update the version in `package.json` manually after validating compatibility
+  with new node-posix *MAJOR* and *MINOR* releases).
+* *"package.json dependencies done right"*:
+  http://blog.nodejitsu.com/package-dependencies-done-right
 
 ## Related modules
 
