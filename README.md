@@ -177,6 +177,13 @@ space) in bytes.
     var limits = posix.getrlimit('nofile');
     console.log('Current limits: soft=' + limits.soft + ', max=' + limits.hard);
 
+### posix.initgroups(user, group)
+
+Sets the group access list to all groups of which user is a member.
+The additional group group is also added to the list.
+
+    posix.initgroups("node", "httpd");  // all groups of 'node' plus 'httpd'
+
 ### posix.setegid(gid)
 
 Sets the Effective group ID of the current process. `gid` can be either a
