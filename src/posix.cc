@@ -316,6 +316,26 @@ static Handle<Value> node_getgrnam(const Arguments& args) {
     return scope.Close(obj);
 }
 
+static Handle<Value> node_initgroups(const Arguments& args) {
+    HandleScope scope;
+
+    if (args.Length() != 2) {
+        return EXCEPTION("initgroups: requires exactly 2 arguments");
+    }
+
+    if (!args[0]->IsString() || !args[1]->IsNumber()) {
+        return EXCEPTION("initgroups: first argument must be a string "
+                         " and the second an integer");
+    }
+
+    String::Utf8Value unam(args[0]->ToString());
+    if (initgroups(*unam, args[1]->Int32Value())) {
+        return ThrowException(ErrnoException(errno, "initgroups"));
+    }
+
+    return Undefined();
+}
+
 static Handle<Value> node_seteuid(const Arguments& args) {
     HandleScope scope;
 
@@ -543,6 +563,7 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "getpwnam", node_getpwnam);
     NODE_SET_METHOD(target, "getgrnam", node_getgrnam);
     NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
+    NODE_SET_METHOD(target, "initgroups", node_initgroups);
     NODE_SET_METHOD(target, "openlog", node_openlog);
     NODE_SET_METHOD(target, "setegid", node_setegid);
     NODE_SET_METHOD(target, "seteuid", node_seteuid);
