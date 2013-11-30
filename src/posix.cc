@@ -108,6 +108,7 @@ static const name_to_int_t rlimit_name_to_res[] = {
   { "nofile", RLIMIT_NOFILE },
   { "stack", RLIMIT_STACK },
   { "as", RLIMIT_AS },
+  { "nproc", RLIMIT_NPROC },
   { 0, 0 }
 };
 
