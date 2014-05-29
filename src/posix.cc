@@ -1,4 +1,5 @@
 #include <node.h>
+#include <nan.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -7,6 +8,7 @@
 #include <pwd.h> // getpwnam, passwd
 #include <grp.h> // getgrnam, group
 #include <syslog.h> // openlog, closelog, syslog, setlogmask
+#include <string>
 
 #define EXCEPTION(msg) ThrowException(Exception::Error(String::New(msg)))
 
@@ -429,18 +431,35 @@ static Handle<Value> node_closelog(const Arguments& args) {
     return Undefined();
 }
 
-static Handle<Value> node_syslog(const Arguments& args) {
-    HandleScope scope;
+class SyslogWorker : public NanAsyncWorker {
+ public:
+  SyslogWorker(int priority, std::string message)
+    : NanAsyncWorker(NULL), priority(priority), message(message) {}
+  ~SyslogWorker() {}
 
-    if(args.Length() != 2) {
-        return EXCEPTION("syslog: requires exactly 2 arguments");
-    }
+  void Execute () {
+    syslog(priority, "%s", message.c_str());
+  }
 
-    String::Utf8Value message(args[1]->ToString());
-    // note: syslog does not ever fail, no return value
-    syslog(args[0]->Int32Value(), "%s", *message);
+ void HandleOKCallback () {
+    NanScope();
+  };
 
-    return Undefined();
+ private:
+  int priority;
+  std::string message;
+};
+
+NAN_METHOD(node_syslog) {
+  NanScope();
+  if(!args[0]->IsUint32() || !args[1]->Value::IsString())
+     return EXCEPTION("syslog: invalid arguments");
+  int priority = args[0]->Uint32Value();
+  String::Utf8Value msg(args[1]->ToString());
+  std::string message = *msg;
+
+  NanAsyncQueueWorker(new SyslogWorker(priority, message));
+  NanReturnUndefined();
 }
 
 static Handle<Value> node_setlogmask(const Arguments& args) {
@@ -572,7 +591,7 @@ extern "C" void init(Handle<Object> target)
     NODE_SET_METHOD(target, "setreuid", node_setreuid);
     NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
     NODE_SET_METHOD(target, "setsid", node_setsid);
-    NODE_SET_METHOD(target, "syslog", node_syslog);
+    target->Set(NanNew<String>("syslog"), NanNew<FunctionTemplate>(node_syslog)->GetFunction());
     NODE_SET_METHOD(target, "update_syslog_constants",
                     node_update_syslog_constants);
     NODE_SET_METHOD(target, "gethostname", node_gethostname);
