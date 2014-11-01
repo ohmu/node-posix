@@ -168,6 +168,9 @@ signal.
 `'nofile'` (RLIMIT_NOFILE) Specifies a value one greater than the maximum file
 descriptor number that can be opened by this process.
 
+`'nproc'` (RLIMIT_NPROC) The maximum number of processes (or, more precisely on Linux,
+threads) that can be created by this process. *(Note: Only Linux, OS X, and BSDs support the 'nproc' resource limit. An error will be raised on unsupported platforms.)*
+
 `'stack'` (RLIMIT_STACK) The maximum size of the process stack, in bytes. Upon
 reaching this limit, a SIGSEGV signal is generated.
 
