@@ -340,8 +340,8 @@ Example:
 
 * Some of the documentation strings stolen from Linux man pages.
 * `posix.seteuid` etc. implementation is based on Node core project `SetUid`
-* Fixes: Dan Bornstein
-* `gethostname`, `sethostname`: Igor Pashev
+* Thank you for your contributions:
+  Igor Pashev, Dan Bornstein, Jamie Paton, Nick Muerdter, Oskari Saarenmaa, Theo Schlossnagle
 
 ## LICENSE
 
