@@ -7,9 +7,18 @@ var limits = [
     "data",
     "fsize",
     "nofile",
+    "nproc",
     "stack",
     "as"
 ];
+
+var unsupportedLimits = [];
+
+if(['linux', 'darwin', 'freebsd'].indexOf(process.platform) !== -1) {
+    limits.push('nproc');
+} else {
+    unsupportedLimits.push('nproc');
+}
 
 // setrlimit: invalid input args
 try {
@@ -60,4 +69,12 @@ for(var i in limits) {
         console.log(limits[i] + " was: " + JSON.stringify(limit));
         console.log(limits[i] + " now: " + JSON.stringify(limit2));
     }
+}
+
+for(i in unsupportedLimits) {
+    try {
+        posix.setrlimit(unsupportedLimits[i], {soft: 100});
+        assert.ok(false);
+    }
+    catch(e) { }
 }

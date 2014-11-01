@@ -7,9 +7,18 @@ var limits = [
     "data",
     "fsize",
     "nofile",
+    "nproc",
     "stack",
     "as"
 ];
+
+var unsupportedLimits = [];
+
+if(['linux', 'darwin', 'freebsd'].indexOf(process.platform) !== -1) {
+    limits.push('nproc');
+} else {
+    unsupportedLimits.push('nproc');
+}
 
 // getrlimit: invalid input args
 try {
@@ -36,4 +45,12 @@ for(var i in limits) {
     console.log("getrlimit " + limits[i] + ": " + JSON.stringify(limit));
     assert.equal(true, typeof limit.soft == 'number' || limit.soft === null);
     assert.equal(true, typeof limit.hard == 'number' || limit.hard === null);
+}
+
+for(i in unsupportedLimits) {
+    try {
+        posix.getrlimit(unsupportedLimits[i]);
+        assert.ok(false);
+    }
+    catch(e) { }
 }
