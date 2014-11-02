@@ -10,7 +10,8 @@ The missing POSIX system calls for Node.
 * A: Because the Node core has a limited set of POSIX system calls.
 * Q: How mature/stable is this?
 * A: Each version released in NPM has decent automated test coverage. The
-  module is still new and not battle-hardened.
+  module has been successfully used in busy production sites for several
+  years.
 * Q: I have a feature request/bug report...
 * A: Please submit a pull request or an issue ticket at
   https://github.com/melor/node-posix
