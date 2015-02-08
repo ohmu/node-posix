@@ -4,6 +4,9 @@ The missing POSIX system calls for Node.
 
 [![Build Status](https://secure.travis-ci.org/melor/node-posix.png)](http://travis-ci.org/melor/node-posix)
 
+[![NPM](https://nodei.co/npm/posix.png?downloads=true&downloadRank=true)](https://nodei.co/npm/posix/) [![NPM](https://nodei.co/npm-dl/posix.png?months=6&height=3)](https://nodei.co/npm/posix/)
+
+
 ## FAQ
 
 * Q: Why?
