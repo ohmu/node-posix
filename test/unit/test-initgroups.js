@@ -13,9 +13,9 @@ function test_initgroups() {
     posix.initgroups("root", 0);
 }
 
-if(posix.getuid() === 0) {
+if('initgroups' in posix && posix.getuid() === 0) {
     test_initgroups()
 }
 else {
-    console.log("warning: initgroups tests skipped - not a privileged user!");
+    console.log("warning: initgroups tests skipped - initgroups not supported or not a privileged user!");
 }
