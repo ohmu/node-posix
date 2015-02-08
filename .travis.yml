@@ -7,3 +7,4 @@ node_js:
 os:
   - linux
   - osx
+script: make travis
