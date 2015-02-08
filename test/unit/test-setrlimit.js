@@ -7,7 +7,6 @@ var limits = [
     "data",
     "fsize",
     "nofile",
-    "nproc",
     "stack",
     "as"
 ];
