@@ -1,4 +1,4 @@
-#include <node.h>
+#include <nan.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -8,91 +8,101 @@
 #include <grp.h> // getgrnam, group
 #include <syslog.h> // openlog, closelog, syslog, setlogmask
 
-#define EXCEPTION(msg) ThrowException(Exception::Error(String::New(msg)))
+using node::ErrnoException;
 
-using namespace v8;
-using namespace node;
+using v8::Array;
+using v8::FunctionTemplate;
+using v8::Handle;
+using v8::Integer;
+using v8::Local;
+using v8::Number;
+using v8::Object;
+using v8::String;
+using v8::Value;
 
-static Handle<Value> node_getppid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_getppid) {
+    NanScope();
 
     if(args.Length() != 0) {
-        return EXCEPTION("getppid: takes no arguments");
+        return NanThrowError("getppid: takes no arguments");
     }
 
-    return scope.Close(Integer::New(getppid()));
+    NanReturnValue(NanNew<Integer>(getppid()));
 }
 
-static Handle<Value> node_getpgid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_getpgid) {
+    NanScope();
 
     if(args.Length() != 1) {
-        return EXCEPTION("getpgid: takes exactly one argument");
+        return NanThrowError("getpgid: takes exactly one argument");
     }
 
-    if (!args[0]->IsNumber()) {
-        return EXCEPTION("getpgid: first argument must be a integer");
+    if(!args[0]->IsNumber()) {
+       return NanThrowTypeError("getpgid: first argument must be a integer");
     }
 
-    return scope.Close(Integer::New(getpgid(args[0]->IntegerValue())));
+    NanReturnValue(NanNew<Integer>(getpgid(args[0]->IntegerValue())));
 }
 
-static Handle<Value> node_geteuid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_geteuid) {
+    NanScope();
 
     if(args.Length() != 0) {
-        return EXCEPTION("geteuid: takes no arguments");
+        return NanThrowError("geteuid: takes no arguments");
     }
 
-    return scope.Close(Integer::New(geteuid()));
+    NanReturnValue(NanNew<Integer>(geteuid()));
 }
 
-static Handle<Value> node_getegid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_getegid) {
+    NanScope();
 
     if(args.Length() != 0) {
-        return EXCEPTION("getegid: takes no arguments");
+        return NanThrowError("getegid: takes no arguments");
     }
 
-    return scope.Close(Integer::New(getegid()));
+    NanReturnValue(NanNew<Integer>(getegid()));
 }
 
-static Handle<Value> node_setsid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_setsid) {
+    NanScope();
 
     if(args.Length() != 0) {
-        return EXCEPTION("setsid: takes no arguments");
+        return NanThrowError("setsid: takes no arguments");
     }
 
     pid_t sid = setsid();
+
     if(sid == -1) {
-        return ThrowException(ErrnoException(errno, "setsid"));
+        return NanThrowError(ErrnoException(errno, "setsid"));
     }
 
-    return scope.Close(Integer::New(sid));
+    NanReturnValue(NanNew<Integer>(sid));
 }
 
-static Handle<Value> node_chroot(const Arguments& args) {
+NAN_METHOD(node_chroot) {
+    NanScope();
+
     if(args.Length() != 1) {
-        return EXCEPTION("chroot: takes exactly one argument");
+        return NanThrowError("chroot: takes exactly one argument");
     }
 
-    if (!args[0]->IsString()) {
-        return EXCEPTION("chroot: first argument must be a string");
+    if(!args[0]->IsString()) {
+        return NanThrowTypeError("chroot: first argument must be a string");
     }
 
     String::Utf8Value dir_path(args[0]->ToString());
 
     // proper order is to first chdir() and then chroot()
     if(chdir(*dir_path)) {
-        return ThrowException(ErrnoException(errno, "chroot: chdir: "));
+        return NanThrowError(ErrnoException(errno, "chroot: chdir: "));
     }
 
     if(chroot(*dir_path)) {
-        return ThrowException(ErrnoException(errno, "chroot"));
+        return NanThrowError(ErrnoException(errno, "chroot"));
     }
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
 struct name_to_int_t {
@@ -108,7 +118,7 @@ static const name_to_int_t rlimit_name_to_res[] = {
   { "nofile", RLIMIT_NOFILE },
   #ifdef RLIMIT_NPROC
   { "nproc", RLIMIT_NPROC },
-  #endif
+    #endif
   { "stack", RLIMIT_STACK },
   { "as", RLIMIT_AS },
   { 0, 0 }
@@ -117,26 +127,27 @@ static const name_to_int_t rlimit_name_to_res[] = {
 // return null if value is RLIM_INFINITY, otherwise the uint value
 static Handle<Value> rlimit_value(rlim_t limit) {
     if(limit == RLIM_INFINITY) {
-        return Null();
+        return NanNull();
     } else {
-        return Number::New((double)limit);
+        return NanNew<Number>((double)limit);
     }
 }
 
-static Handle<Value> node_getrlimit(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_getrlimit) {
+    NanScope();
 
     if(args.Length() != 1) {
-        return EXCEPTION("getrlimit: requires exactly 1 argument");
+        return NanThrowError("getrlimit: requires exactly one argument");
+    }
+
+    if (!args[0]->IsString()) {
+        return NanThrowTypeError("getrlimit: argument must be a string");
     }
 
     struct rlimit limit;
-    if (!args[0]->IsString()) {
-        return EXCEPTION("getrlimit: argument must be a string");
-    }
-
     String::Utf8Value rlimit_name(args[0]->ToString());
     int resource = -1;
+
     for(const name_to_int_t* item = rlimit_name_to_res;
         item->name; ++item) {
         if(!strcmp(*rlimit_name, item->name)) {
@@ -144,27 +155,35 @@ static Handle<Value> node_getrlimit(const Arguments& args) {
             break;
         }
     }
-    if(resource < 0)
-    {
-        return EXCEPTION("getrlimit: unknown resource name");
+
+    if(resource < 0) {
+        return NanThrowError("getrlimit: unknown resource name");
     }
 
     if(getrlimit(resource, &limit)) {
-        return ThrowException(ErrnoException(errno, "getrlimit"));
+        return NanThrowError(ErrnoException(errno, "getrlimit"));
     }
 
-    Local<Object> info = Object::New();
-    info->Set(String::New("soft"), rlimit_value(limit.rlim_cur));
-    info->Set(String::New("hard"), rlimit_value(limit.rlim_max));
+    Local<Object> info = NanNew<Object>();
+    info->Set(NanNew<String>("soft"), rlimit_value(limit.rlim_cur));
+    info->Set(NanNew<String>("hard"), rlimit_value(limit.rlim_max));
 
-    return scope.Close(info);
+    NanReturnValue(info);
 }
 
-static Handle<Value> node_setrlimit(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_setrlimit) {
+    NanScope();
 
     if(args.Length() != 2) {
-        return EXCEPTION("setrlimit: requires exactly 2 arguments");
+        return NanThrowError("setrlimit: requires exactly two arguments");
+    }
+
+    if (!args[0]->IsString()) {
+        return NanThrowTypeError("setrlimit: argument 0 must be a string");
+    }
+
+    if (!args[1]->IsObject()) {
+        return NanThrowTypeError("setrlimit: argument 1 must be an object");
     }
 
     String::Utf8Value rlimit_name(args[0]->ToString());
@@ -177,18 +196,13 @@ static Handle<Value> node_setrlimit(const Arguments& args) {
         }
     }
 
-    if(resource < 0)
-    {
-        return EXCEPTION("setrlimit: unknown resource name");
-    }
-
-    if (!args[1]->IsObject()) {
-        return EXCEPTION("getrlimit: second argument must be an object");
+    if(resource < 0) {
+        return NanThrowError("setrlimit: unknown resource name");
     }
 
     Local<Object> limit_in = args[1]->ToObject(); // Cast
-    Local<String> soft_key = String::New("soft");
-    Local<String> hard_key = String::New("hard");
+    Local<String> soft_key = NanNew<String>("soft");
+    Local<String> hard_key = NanNew<String>("hard");
     struct rlimit limit;
     bool get_soft = false, get_hard = false;
     if (limit_in->Has(soft_key)) {
@@ -219,180 +233,178 @@ static Handle<Value> node_setrlimit(const Arguments& args) {
         // current values for the limits are needed
         struct rlimit current;
         if(getrlimit(resource, &current)) {
-            return ThrowException(ErrnoException(errno, "getrlimit"));
+            return NanThrowError(ErrnoException(errno, "getrlimit"));
         }
         if(get_soft) { limit.rlim_cur = current.rlim_cur; }
         if(get_hard) { limit.rlim_max = current.rlim_max; }
     }
 
     if(setrlimit(resource, &limit)) {
-        return ThrowException(ErrnoException(errno, "setrlimit"));
+        return NanThrowError(ErrnoException(errno, "setrlimit"));
     }
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_getpwnam(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_getpwnam) {
+    NanScope();
 
     if(args.Length() != 1) {
-        return EXCEPTION("getpwnam: requires exactly 1 argument");
+        return NanThrowError("getpwnam: requires exactly 1 argument");
     }
 
     struct passwd* pwd;
     errno = 0; // reset errno before the call
+
     if(args[0]->IsNumber()) {
         pwd = getpwuid(args[0]->Int32Value());
         if(errno) {
-            return ThrowException(ErrnoException(errno, "getpwuid"));
+            return NanThrowError(ErrnoException(errno, "getpwuid"));
         }
-    }
-    else if (args[0]->IsString()) {
+    } else if (args[0]->IsString()) {
         String::Utf8Value pwnam(args[0]->ToString());
         pwd = getpwnam(*pwnam);
         if(errno) {
-            return ThrowException(ErrnoException(errno, "getpwnam"));
+            return NanThrowError(ErrnoException(errno, "getpwnam"));
         }
-    }
-    else {
-        return EXCEPTION("argument must be a number or a string");
+    } else {
+        return NanThrowTypeError("argument must be a number or a string");
     }
 
     if(!pwd) {
-        return EXCEPTION("user id does not exist");
+        return NanThrowError("user id does not exist");
     }
 
-    Local<Object> obj = Object::New();
-    obj->Set(String::New("name"), String::New(pwd->pw_name));
-    obj->Set(String::New("passwd"), String::New(pwd->pw_passwd));
-    obj->Set(String::New("uid"), Number::New(pwd->pw_uid));
-    obj->Set(String::New("gid"), Number::New(pwd->pw_gid));
-    obj->Set(String::New("gecos"), String::New(pwd->pw_gecos));
-    obj->Set(String::New("shell"), String::New(pwd->pw_shell));
-    obj->Set(String::New("dir"), String::New(pwd->pw_dir));
+    Local<Object> obj = NanNew<Object>();
+    obj->Set(NanNew<String>("name"), NanNew<String>(pwd->pw_name));
+    obj->Set(NanNew<String>("passwd"), NanNew<String>(pwd->pw_passwd));
+    obj->Set(NanNew<String>("uid"), NanNew<Number>(pwd->pw_uid));
+    obj->Set(NanNew<String>("gid"), NanNew<Number>(pwd->pw_gid));
+    obj->Set(NanNew<String>("gecos"), NanNew<String>(pwd->pw_gecos));
+    obj->Set(NanNew<String>("shell"), NanNew<String>(pwd->pw_shell));
+    obj->Set(NanNew<String>("dir"), NanNew<String>(pwd->pw_dir));
 
-    return scope.Close(obj);
+    NanReturnValue(obj);
 }
 
-static Handle<Value> node_getgrnam(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_getgrnam) {
+    NanScope();
 
     if(args.Length() != 1) {
-        return EXCEPTION("getgrnam: requires exactly 1 argument");
+        return NanThrowError("getgrnam: requires exactly 1 argument");
     }
 
     struct group* grp;
     errno = 0; // reset errno before the call
+
     if(args[0]->IsNumber()) {
         grp = getgrgid(args[0]->Int32Value());
         if(errno) {
-            return ThrowException(ErrnoException(errno, "getgrgid"));
+            return NanThrowError(ErrnoException(errno, "getgrgid"));
         }
-    }
-    else if (args[0]->IsString()) {
+    } else if (args[0]->IsString()) {
         String::Utf8Value pwnam(args[0]->ToString());
         grp = getgrnam(*pwnam);
         if(errno) {
-            return ThrowException(ErrnoException(errno, "getgrnam"));
+            return NanThrowError(ErrnoException(errno, "getgrnam"));
         }
-    }
-    else {
-        return EXCEPTION("argument must be a number or a string");
+    } else {
+        return NanThrowTypeError("argument must be a number or a string");
     }
 
     if(!grp) {
-        return EXCEPTION("group id does not exist");
+        return NanThrowError("group id does not exist");
     }
 
-    Local<Object> obj = Object::New();
-    obj->Set(String::New("name"), String::New(grp->gr_name));
-    obj->Set(String::New("passwd"), String::New(grp->gr_passwd));
-    obj->Set(String::New("gid"), Number::New(grp->gr_gid));
+    Local<Object> obj = NanNew<Object>();
+    obj->Set(NanNew<String>("name"), NanNew<String>(grp->gr_name));
+    obj->Set(NanNew<String>("passwd"), NanNew<String>(grp->gr_passwd));
+    obj->Set(NanNew<String>("gid"), NanNew<Number>(grp->gr_gid));
 
-    Local<Array> members = Array::New();
+    Local<Array> members = NanNew<Array>();
     char** cur = grp->gr_mem;
     for(size_t i=0; *cur; ++i, ++cur) {
-        (*members)->Set(i, String::New(*cur));
+        (*members)->Set(i, NanNew<String>(*cur));
     }
-    obj->Set(String::New("members"), members);
+    obj->Set(NanNew<String>("members"), members);
 
-    return scope.Close(obj);
+    NanReturnValue(obj);
 }
 
-static Handle<Value> node_initgroups(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_initgroups) {
+    NanScope();
 
     if (args.Length() != 2) {
-        return EXCEPTION("initgroups: requires exactly 2 arguments");
+        return NanThrowError("initgroups: requires exactly 2 arguments");
     }
 
     if (!args[0]->IsString() || !args[1]->IsNumber()) {
-        return EXCEPTION("initgroups: first argument must be a string "
+        return NanThrowTypeError("initgroups: first argument must be a string "
                          " and the second an integer");
     }
 
     String::Utf8Value unam(args[0]->ToString());
     if (initgroups(*unam, args[1]->Int32Value())) {
-        return ThrowException(ErrnoException(errno, "initgroups"));
+        return NanThrowError(ErrnoException(errno, "initgroups"));
     }
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_seteuid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_seteuid) {
+    NanScope();
 
     if(args.Length() != 1) {
-        return EXCEPTION("seteuid: requires exactly 1 argument");
+        return NanThrowError("seteuid: requires exactly 1 argument");
     }
 
     if(seteuid(args[0]->Int32Value())) {
-        return ThrowException(ErrnoException(errno, "seteuid"));
+        return NanThrowError(ErrnoException(errno, "seteuid"));
     }
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_setegid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_setegid) {
+    NanScope();
 
     if(args.Length() != 1) {
-        return EXCEPTION("setegid: requires exactly 1 argument");
+        return NanThrowError("setegid: requires exactly 1 argument");
     }
 
     if(setegid(args[0]->Int32Value())) {
-        return ThrowException(ErrnoException(errno, "setegid"));
+        return NanThrowError(ErrnoException(errno, "setegid"));
     }
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_setregid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_setregid) {
+    NanScope();
 
     if(args.Length() != 2) {
-        return EXCEPTION("setregid: requires exactly 2 arguments");
+        return NanThrowError("setregid: requires exactly 2 arguments");
     }
 
     if(setregid(args[0]->Int32Value(), args[1]->Int32Value())) {
-        return ThrowException(ErrnoException(errno, "setregid"));
+        return NanThrowError(ErrnoException(errno, "setregid"));
     }
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_setreuid(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_setreuid) {
+    NanScope();
 
     if(args.Length() != 2) {
-        return EXCEPTION("setreuid: requires exactly 2 arguments");
+        return NanThrowError("setreuid: requires exactly 2 arguments");
     }
 
     if(setreuid(args[0]->Int32Value(), args[1]->Int32Value())) {
-        return ThrowException(ErrnoException(errno, "setreuid"));
+        return NanThrowError(ErrnoException(errno, "setreuid"));
     }
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
 // openlog() first argument (const char* ident) is not guaranteed to be
@@ -400,71 +412,75 @@ static Handle<Value> node_setreuid(const Arguments& args) {
 static const size_t MAX_SYSLOG_IDENT=100;
 static char syslog_ident[MAX_SYSLOG_IDENT+1] = {0};
 
-static Handle<Value> node_openlog(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_openlog) {
+    NanScope();
 
     if(args.Length() != 3) {
-        return EXCEPTION("openlog: requires exactly 3 arguments");
+        return NanThrowError("openlog: requires exactly 3 arguments");
     }
 
     String::Utf8Value ident(args[0]->ToString());
     strncpy(syslog_ident, *ident, MAX_SYSLOG_IDENT);
     syslog_ident[MAX_SYSLOG_IDENT] = 0;
     if(!args[1]->IsNumber() || !args[2]->IsNumber()) {
-        return EXCEPTION("openlog: invalid argument values");
+        return NanThrowError("openlog: invalid argument values");
     }
     // note: openlog does not ever fail, no return value
     openlog(syslog_ident, args[1]->Int32Value(), args[2]->Int32Value());
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_closelog(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_closelog) {
+    NanScope();
 
     if(args.Length() != 0) {
-        return EXCEPTION("closelog: does not take any arguments");
+        return NanThrowError("closelog: does not take any arguments");
     }
 
     // note: closelog does not ever fail, no return value
     closelog();
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_syslog(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_syslog) {
+    NanScope();
 
     if(args.Length() != 2) {
-        return EXCEPTION("syslog: requires exactly 2 arguments");
+        return NanThrowError("syslog: requires exactly 2 arguments");
     }
 
     String::Utf8Value message(args[1]->ToString());
     // note: syslog does not ever fail, no return value
     syslog(args[0]->Int32Value(), "%s", *message);
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_setlogmask(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_setlogmask) {
+    NanScope();
 
     if(args.Length() != 1) {
-        return EXCEPTION("setlogmask: takes exactly 1 argument");
+        return NanThrowError("setlogmask: takes exactly 1 argument");
     }
 
-    return scope.Close(Integer::New(setlogmask(args[0]->Int32Value())));
+    NanReturnValue(NanNew<Integer>(setlogmask(args[0]->Int32Value())));
 }
 
 #define ADD_MASK_FLAG(name, flag) \
-    obj->Set(String::New(name), Integer::New(flag)); \
-    obj->Set(String::New("mask_" name), Integer::New(LOG_MASK(flag)));
+    obj->Set(NanNew<String>(name), NanNew<Integer>(flag)); \
+    obj->Set(NanNew<String>("mask_" name), NanNew<Integer>(LOG_MASK(flag)));
 
-static Handle<Value> node_update_syslog_constants(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_update_syslog_constants) {
+    NanScope();
 
-    if((args.Length() != 1) || (!args[0]->IsObject())) {
-        return EXCEPTION("invalid arguments");
+    if(args.Length() != 1) {
+      return NanThrowError("update_syslog_constants: takes exactly 1 argument");
+    }
+
+    if(!args[0]->IsObject()) {
+        return NanThrowTypeError("update_syslog_constants: argument must be an object");
     }
 
     Local<Object> obj = args[0]->ToObject();
@@ -478,46 +494,46 @@ static Handle<Value> node_update_syslog_constants(const Arguments& args) {
     ADD_MASK_FLAG("debug", LOG_DEBUG);
 
     // facility constants
-    obj->Set(String::New("auth"), Integer::New(LOG_AUTH));
+    obj->Set(NanNew<String>("auth"), NanNew<Integer>(LOG_AUTH));
 #ifdef LOG_AUTHPRIV
-    obj->Set(String::New("authpriv"), Integer::New(LOG_AUTHPRIV));
+    obj->Set(NanNew<String>("authpriv"), NanNew<Integer>(LOG_AUTHPRIV));
 #endif
-    obj->Set(String::New("cron"), Integer::New(LOG_CRON));
-    obj->Set(String::New("daemon"), Integer::New(LOG_DAEMON));
+    obj->Set(NanNew<String>("cron"), NanNew<Integer>(LOG_CRON));
+    obj->Set(NanNew<String>("daemon"), NanNew<Integer>(LOG_DAEMON));
 #ifdef LOG_FTP
-    obj->Set(String::New("ftp"), Integer::New(LOG_FTP));
+    obj->Set(NanNew<String>("ftp"), NanNew<Integer>(LOG_FTP));
 #endif
-    obj->Set(String::New("kern"), Integer::New(LOG_KERN));
-    obj->Set(String::New("lpr"), Integer::New(LOG_LPR));
-    obj->Set(String::New("mail"), Integer::New(LOG_MAIL));
-    obj->Set(String::New("news"), Integer::New(LOG_NEWS));
-    obj->Set(String::New("syslog"), Integer::New(LOG_SYSLOG));
-    obj->Set(String::New("user"), Integer::New(LOG_USER));
-    obj->Set(String::New("uucp"), Integer::New(LOG_UUCP));
-    obj->Set(String::New("local0"), Integer::New(LOG_LOCAL0));
-    obj->Set(String::New("local1"), Integer::New(LOG_LOCAL1));
-    obj->Set(String::New("local2"), Integer::New(LOG_LOCAL2));
-    obj->Set(String::New("local3"), Integer::New(LOG_LOCAL3));
-    obj->Set(String::New("local4"), Integer::New(LOG_LOCAL4));
-    obj->Set(String::New("local5"), Integer::New(LOG_LOCAL5));
-    obj->Set(String::New("local6"), Integer::New(LOG_LOCAL6));
-    obj->Set(String::New("local7"), Integer::New(LOG_LOCAL7));
+    obj->Set(NanNew<String>("kern"), NanNew<Integer>(LOG_KERN));
+    obj->Set(NanNew<String>("lpr"), NanNew<Integer>(LOG_LPR));
+    obj->Set(NanNew<String>("mail"), NanNew<Integer>(LOG_MAIL));
+    obj->Set(NanNew<String>("news"), NanNew<Integer>(LOG_NEWS));
+    obj->Set(NanNew<String>("syslog"), NanNew<Integer>(LOG_SYSLOG));
+    obj->Set(NanNew<String>("user"), NanNew<Integer>(LOG_USER));
+    obj->Set(NanNew<String>("uucp"), NanNew<Integer>(LOG_UUCP));
+    obj->Set(NanNew<String>("local0"), NanNew<Integer>(LOG_LOCAL0));
+    obj->Set(NanNew<String>("local1"), NanNew<Integer>(LOG_LOCAL1));
+    obj->Set(NanNew<String>("local2"), NanNew<Integer>(LOG_LOCAL2));
+    obj->Set(NanNew<String>("local3"), NanNew<Integer>(LOG_LOCAL3));
+    obj->Set(NanNew<String>("local4"), NanNew<Integer>(LOG_LOCAL4));
+    obj->Set(NanNew<String>("local5"), NanNew<Integer>(LOG_LOCAL5));
+    obj->Set(NanNew<String>("local6"), NanNew<Integer>(LOG_LOCAL6));
+    obj->Set(NanNew<String>("local7"), NanNew<Integer>(LOG_LOCAL7));
 
     // option constants
-    obj->Set(String::New("pid"), Integer::New(LOG_PID));
-    obj->Set(String::New("cons"), Integer::New(LOG_CONS));
-    obj->Set(String::New("ndelay"), Integer::New(LOG_NDELAY));
-    obj->Set(String::New("odelay"), Integer::New(LOG_ODELAY));
-    obj->Set(String::New("nowait"), Integer::New(LOG_NOWAIT));
+    obj->Set(NanNew<String>("pid"), NanNew<Integer>(LOG_PID));
+    obj->Set(NanNew<String>("cons"), NanNew<Integer>(LOG_CONS));
+    obj->Set(NanNew<String>("ndelay"), NanNew<Integer>(LOG_NDELAY));
+    obj->Set(NanNew<String>("odelay"), NanNew<Integer>(LOG_ODELAY));
+    obj->Set(NanNew<String>("nowait"), NanNew<Integer>(LOG_NOWAIT));
 
-    return Undefined();
+    NanReturnValue(NanUndefined());
 }
 
-static Handle<Value> node_gethostname(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_gethostname) {
+    NanScope();
 
     if(args.Length() != 0) {
-        return EXCEPTION("gethostname: takes no arguments");
+        return NanThrowError("gethostname: takes no arguments");
     }
 #ifndef HOST_NAME_MAX
 # define HOST_NAME_MAX 255
@@ -527,59 +543,99 @@ static Handle<Value> node_gethostname(const Arguments& args) {
 
     int rc = gethostname(hostname, HOST_NAME_MAX);
     if (rc != 0) {
-        return ThrowException(ErrnoException(errno, "gethostname"));
+        return NanThrowError(ErrnoException(errno, "gethostname"));
     }
 
-    return scope.Close(String::New(hostname));
+    NanReturnValue(NanNew<String>(hostname));
 }
 
-static Handle<Value> node_sethostname(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(node_sethostname) {
+    NanScope();
 
     if (args.Length() != 1) {
-        return EXCEPTION("sethostname: takes exactly 1 argument");
+        return NanThrowError("sethostname: takes exactly 1 argument");
     }
 
     if (!args[0]->IsString()) {
-        return EXCEPTION("sethostname: first argument must be a string");
+        return NanThrowTypeError("sethostname: first argument must be a string");
     }
 
     String::Utf8Value str(args[0]);
 
     int rc = sethostname(*str, str.length());
     if (rc != 0) {
-        return ThrowException(ErrnoException(errno, "sethostname"));
+        return NanThrowError(ErrnoException(errno, "sethostname"));
     }
 
-    return scope.Close(Undefined());
+    NanReturnValue(NanUndefined());
 }
 
-extern "C" void init(Handle<Object> target)
-{
-    HandleScope scope;
-    NODE_SET_METHOD(target, "chroot", node_chroot);
-    NODE_SET_METHOD(target, "closelog", node_closelog);
-    NODE_SET_METHOD(target, "getegid", node_getegid);
-    NODE_SET_METHOD(target, "geteuid", node_geteuid);
-    NODE_SET_METHOD(target, "getpgid", node_getpgid);
-    NODE_SET_METHOD(target, "getppid", node_getppid);
-    NODE_SET_METHOD(target, "getpwnam", node_getpwnam);
-    NODE_SET_METHOD(target, "getgrnam", node_getgrnam);
-    NODE_SET_METHOD(target, "getrlimit", node_getrlimit);
-    NODE_SET_METHOD(target, "initgroups", node_initgroups);
-    NODE_SET_METHOD(target, "openlog", node_openlog);
-    NODE_SET_METHOD(target, "setegid", node_setegid);
-    NODE_SET_METHOD(target, "seteuid", node_seteuid);
-    NODE_SET_METHOD(target, "setlogmask", node_setlogmask);
-    NODE_SET_METHOD(target, "setregid", node_setregid);
-    NODE_SET_METHOD(target, "setreuid", node_setreuid);
-    NODE_SET_METHOD(target, "setrlimit", node_setrlimit);
-    NODE_SET_METHOD(target, "setsid", node_setsid);
-    NODE_SET_METHOD(target, "syslog", node_syslog);
-    NODE_SET_METHOD(target, "update_syslog_constants",
-                    node_update_syslog_constants);
-    NODE_SET_METHOD(target, "gethostname", node_gethostname);
-    NODE_SET_METHOD(target, "sethostname", node_sethostname);
+void init(Handle<Object> exports) {
+    exports->Set(NanNew<String>("getppid"),
+        NanNew<FunctionTemplate>(node_getppid)->GetFunction());
+
+    exports->Set(NanNew<String>("getpgid"),
+        NanNew<FunctionTemplate>(node_getpgid)->GetFunction());
+
+    exports->Set(NanNew<String>("geteuid"),
+        NanNew<FunctionTemplate>(node_geteuid)->GetFunction());
+
+    exports->Set(NanNew<String>("getegid"),
+        NanNew<FunctionTemplate>(node_getegid)->GetFunction());
+
+    exports->Set(NanNew<String>("setsid"),
+        NanNew<FunctionTemplate>(node_setsid)->GetFunction());
+
+    exports->Set(NanNew<String>("chroot"),
+        NanNew<FunctionTemplate>(node_chroot)->GetFunction());
+
+    exports->Set(NanNew<String>("getrlimit"),
+        NanNew<FunctionTemplate>(node_getrlimit)->GetFunction());
+
+    exports->Set(NanNew<String>("setrlimit"),
+        NanNew<FunctionTemplate>(node_setrlimit)->GetFunction());
+
+    exports->Set(NanNew<String>("getpwnam"),
+        NanNew<FunctionTemplate>(node_getpwnam)->GetFunction());
+
+    exports->Set(NanNew<String>("getgrnam"),
+        NanNew<FunctionTemplate>(node_getgrnam)->GetFunction());
+
+    exports->Set(NanNew<String>("initgroups"),
+        NanNew<FunctionTemplate>(node_initgroups)->GetFunction());
+
+    exports->Set(NanNew<String>("seteuid"),
+        NanNew<FunctionTemplate>(node_seteuid)->GetFunction());
+
+    exports->Set(NanNew<String>("setegid"),
+        NanNew<FunctionTemplate>(node_setegid)->GetFunction());
+
+    exports->Set(NanNew<String>("setregid"),
+        NanNew<FunctionTemplate>(node_setregid)->GetFunction());
+
+    exports->Set(NanNew<String>("setreuid"),
+        NanNew<FunctionTemplate>(node_setreuid)->GetFunction());
+
+    exports->Set(NanNew<String>("openlog"),
+        NanNew<FunctionTemplate>(node_openlog)->GetFunction());
+
+    exports->Set(NanNew<String>("closelog"),
+        NanNew<FunctionTemplate>(node_closelog)->GetFunction());
+
+    exports->Set(NanNew<String>("syslog"),
+        NanNew<FunctionTemplate>(node_syslog)->GetFunction());
+
+    exports->Set(NanNew<String>("setlogmask"),
+        NanNew<FunctionTemplate>(node_setlogmask)->GetFunction());
+
+    exports->Set(NanNew<String>("update_syslog_constants"),
+        NanNew<FunctionTemplate>(node_update_syslog_constants)->GetFunction());
+
+    exports->Set(NanNew<String>("gethostname"),
+        NanNew<FunctionTemplate>(node_gethostname)->GetFunction());
+
+    exports->Set(NanNew<String>("sethostname"),
+        NanNew<FunctionTemplate>(node_sethostname)->GetFunction());
 }
 
 NODE_MODULE(posix, init);
