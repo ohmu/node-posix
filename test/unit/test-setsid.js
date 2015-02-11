@@ -23,7 +23,6 @@ assert.throws(function () {
 }, /takes no arguments/);
 
 var sid = posix.setsid();
-console.log("setsid: " + sid);
 assert.equal(sid, process.pid);
 assert.equal(sid, posix.getpgid(0));
 
