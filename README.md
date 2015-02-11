@@ -345,7 +345,8 @@ Example:
 * Some of the documentation strings stolen from Linux man pages.
 * `posix.seteuid` etc. implementation is based on Node core project `SetUid`
 * Thank you for your contributions:
-  Igor Pashev, Dan Bornstein, Jamie Paton, Nick Muerdter, Oskari Saarenmaa, Theo Schlossnagle
+  Igor Pashev, Dan Bornstein, Jamie Paton, Nick Muerdter, Oskari Saarenmaa,
+  Theo Schlossnagle, Alex Potsides
 
 ## LICENSE
 

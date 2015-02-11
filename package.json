@@ -1,6 +1,6 @@
 {
     "name": "posix",
-    "version": "1.0.4",
+    "version": "2.0.0",
     "description": "The missing POSIX system calls",
     "keywords" : [
         "posix", "rlimit", "getrlimit", "setrlimit", "ulimit", "setuid",
@@ -16,7 +16,7 @@
     "author" : "Mika Eloranta <mel@ohmu.fi>",
     "main" : "./lib/posix",
     "dependencies" : {
-      "nan": "~1.6.2"
+        "nan": "~1.6.2"
     },
     "scripts" : {
         "test" : "make test"
