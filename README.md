@@ -40,12 +40,12 @@ The missing POSIX system calls for Node.
 
 Other extension modules that provide POSIX/Unix/Linux/BSD functionality:
 
-* glob() http://search.npmjs.org/#/glob
-* getrusage() http://search.npmjs.org/#/getrusage
-* chroot(), daemonization http://search.npmjs.org/#/daemon-tools
-* iconv() http://search.npmjs.org/#/iconv
-* mmap() http://search.npmjs.org/#/mmap
-* PAM authentication, flock() and mkstemp() http://search.npmjs.org/#/unixlib
+* glob() http://npm.im/glob
+* getrusage() http://npm.im/getrusage
+* chroot(), daemonization http://npm.im/daemon-tools
+* iconv() http://npm.im/iconv
+* mmap() http://npm.im/mmap
+* PAM authentication, flock() and mkstemp() http://npm.im/unixlib
 
 ## General Information
 
