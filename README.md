@@ -46,6 +46,7 @@ Other extension modules that provide POSIX/Unix/Linux/BSD functionality:
 * iconv() http://npm.im/iconv
 * mmap() http://npm.im/mmap
 * PAM authentication, flock() and mkstemp() http://npm.im/unixlib
+* execvp() http://npm.im/kexec
 
 ## General Information
 
