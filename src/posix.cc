@@ -30,6 +30,16 @@ NAN_METHOD(node_getppid) {
     NanReturnValue(NanNew<Integer>(getppid()));
 }
 
+NAN_METHOD(node_getpid) {
+    NanScope();
+
+    if(args.Length() != 0) {
+        return NanThrowError("getpid: takes no arguments");
+    }
+
+    NanReturnValue(NanNew<Integer>(getpid()));
+}
+
 NAN_METHOD(node_getpgid) {
     NanScope();
 
@@ -78,6 +88,22 @@ NAN_METHOD(node_setsid) {
     }
 
     NanReturnValue(NanNew<Integer>(sid));
+}
+
+NAN_METHOD(node_fork) {
+    NanScope();
+
+    if(args.Length() != 0) {
+        return NanThrowError("fork: takes no arguments");
+    }
+
+    pid_t pid = fork();
+
+    if(pid == -1) {
+        return NanThrowError(ErrnoException(errno, "fork"));
+    }
+
+    NanReturnValue(NanNew<Integer>(pid));
 }
 
 NAN_METHOD(node_chroot) {
@@ -574,6 +600,9 @@ void init(Handle<Object> exports) {
     exports->Set(NanNew<String>("getppid"),
         NanNew<FunctionTemplate>(node_getppid)->GetFunction());
 
+    exports->Set(NanNew<String>("getpid"),
+        NanNew<FunctionTemplate>(node_getpid)->GetFunction());
+
     exports->Set(NanNew<String>("getpgid"),
         NanNew<FunctionTemplate>(node_getpgid)->GetFunction());
 
@@ -585,6 +614,9 @@ void init(Handle<Object> exports) {
 
     exports->Set(NanNew<String>("setsid"),
         NanNew<FunctionTemplate>(node_setsid)->GetFunction());
+
+    exports->Set(NanNew<String>("fork"),
+        NanNew<FunctionTemplate>(node_fork)->GetFunction());
 
     exports->Set(NanNew<String>("chroot"),
         NanNew<FunctionTemplate>(node_chroot)->GetFunction());
