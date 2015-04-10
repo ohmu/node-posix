@@ -125,6 +125,12 @@ Returns the parent process's PID.
 
     console.log('Parent PID: ' + posix.getppid());
 
+### posix.getpid()
+
+Returns the current process's PID.
+
+    console.log('PID: ' + posix.getpid());
+
 ### posix.getpwnam(user)
 
 Get the user database entry for the given user. `user` can be specified either
@@ -253,6 +259,17 @@ value of `null` indicates "unlimited" (RLIM_INFINITY).
 Creates a session and sets the process group ID. Returns the process group ID.
 
     console.log('Session ID: ' + posix.setsid());
+
+### posix.fork()
+
+Fork the current process. Returns 0 in the child and the child's PID in the parent.
+
+    var pid = posix.fork();
+    if(pid === 0) {
+      console.log('Child');
+    } else {
+      console.log('Parent. Child PID: ' + pid);
+    }
 
 ## Syslog
 
