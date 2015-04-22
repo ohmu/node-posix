@@ -8,7 +8,7 @@ assert.throws(function () {
 }, /exactly one argument/);
 
 var my_pgid = posix.getpgid(0);
-assert.ok(my_pgid > 0);
+assert.ok(my_pgid >= 0);
 assert.notEqual(my_pgid, process.pid);
 
 var parent_pgid = posix.getpgid(posix.getppid());
