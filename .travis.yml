@@ -3,7 +3,9 @@ node_js:
   - "0.8"
   - "0.10"
   - "0.12"
+  - "iojs"
   - "iojs-v1.1.0"
+  - "iojs-v2.0.0"
 os:
   - linux
 script: make travis
