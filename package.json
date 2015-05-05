@@ -1,6 +1,6 @@
 {
     "name": "posix",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "The missing POSIX system calls",
     "keywords" : [
         "posix", "rlimit", "getrlimit", "setrlimit", "ulimit", "setuid",
