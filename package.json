@@ -16,7 +16,7 @@
     "author" : "Mika Eloranta <mel@ohmu.fi>",
     "main" : "./lib/posix",
     "dependencies" : {
-        "nan": "~1.6.2"
+        "nan": "~1.8.4"
     },
     "scripts" : {
         "test" : "make test"
