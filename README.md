@@ -2,7 +2,7 @@
 
 The missing POSIX system calls for Node.
 
-[![Build Status](https://secure.travis-ci.org/melor/node-posix.png)](http://travis-ci.org/melor/node-posix)
+[![Build Status](https://secure.travis-ci.org/ohmu/node-posix.png)](http://travis-ci.org/ohmu/node-posix)
 
 [![NPM](https://nodei.co/npm/posix.png?downloads=true&downloadRank=true)](https://nodei.co/npm/posix/) [![NPM](https://nodei.co/npm-dl/posix.png?months=6&height=3)](https://nodei.co/npm/posix/)
 
@@ -17,7 +17,7 @@ The missing POSIX system calls for Node.
   years.
 * Q: I have a feature request/bug report...
 * A: Please submit a pull request or an issue ticket at
-  https://github.com/melor/node-posix
+  https://github.com/ohmu/node-posix
 
 ## Compatibility and API Stability
 

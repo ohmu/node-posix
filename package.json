@@ -8,10 +8,10 @@
         "getpgrp", "setsid", "setpgid", "getpwnam", "getgrnam", "uid", "gid",
         "initgroups", "syslog", "setlogmask", "gethostname", "sethostname"
     ],
-    "homepage": "http://github.com/melor/node-posix",
+    "homepage": "http://github.com/ohmu/node-posix",
     "repository" : {
         "type" : "git",
-        "url" : "git://github.com/melor/node-posix.git"
+        "url" : "git://github.com/ohmu/node-posix.git"
     },
     "author" : "Mika Eloranta <mel@ohmu.fi>",
     "main" : "./lib/posix",
