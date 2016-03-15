@@ -119,6 +119,14 @@ a process of a given PID (`posix.getpgid(PID)`).
     console.log('My PGID: ' + posix.getpgid(0));
     console.log('init's PGID: ' + posix.getpgid(1));
 
+### posix.setpgid(pid)
+
+Return the process group ID of the current process (`posix.setpgid(0, PGID)`)
+or of a process of a given PID (`posix.getpgid(PID, PGID)`).
+
+    // move process into it's own process group
+    posix.setpgid(process.pid, process.pid)
+
 ### posix.getppid()
 
 Returns the parent process's PID.
