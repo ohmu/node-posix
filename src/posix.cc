@@ -36,7 +36,7 @@ NAN_METHOD(node_getpgid) {
     }
 
     if (!info[0]->IsNumber()) {
-       return Nan::ThrowTypeError("getpgid: first argument must be a integer");
+       return Nan::ThrowTypeError("getpgid: first argument must be an integer");
     }
 
     info.GetReturnValue().Set(Nan::New<Integer>(getpgid(info[0]->IntegerValue())));
@@ -50,11 +50,11 @@ NAN_METHOD(node_setpgid) {
     }
 
     if (!info[0]->IsNumber()) {
-        return Nan::ThrowTypeError("setpgid: first argument must be a integer");
+        return Nan::ThrowTypeError("setpgid: first argument must be an integer");
     }
 
     if (!info[1]->IsNumber()) {
-        return Nan::ThrowTypeError("setpgid: first argument must be a integer");
+        return Nan::ThrowTypeError("setpgid: first argument must be an integer");
     }
 
     if (setpgid(info[0]->IntegerValue(), info[1]->IntegerValue()) < 0) {
