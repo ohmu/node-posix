@@ -355,7 +355,7 @@ Example:
 * `posix.seteuid` etc. implementation is based on Node core project `SetUid`
 * Thank you for your contributions:
   Igor Pashev, Dan Bornstein, Jamie Paton, Nick Muerdter, Oskari Saarenmaa,
-  Theo Schlossnagle, Alex Potsides, Robey Pointer
+  Theo Schlossnagle, Alex Potsides, Robey Pointer, Stephen Sugden
 
 ## LICENSE
 
