@@ -58,7 +58,7 @@ NAN_METHOD(node_setpgid) {
     }
 
     if (setpgid(info[0]->IntegerValue(), info[1]->IntegerValue()) < 0) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "setpgid", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "setpgid", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
@@ -94,7 +94,7 @@ NAN_METHOD(node_setsid) {
     pid_t sid = setsid();
 
     if (sid == -1) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "setsid", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "setsid", ""));
     }
 
     info.GetReturnValue().Set(Nan::New<Integer>(sid));
@@ -115,11 +115,11 @@ NAN_METHOD(node_chroot) {
 
     // proper order is to first chdir() and then chroot()
     if (chdir(*dir_path)) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "chroot: chdir: ", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "chroot: chdir: ", ""));
     }
 
     if(chroot(*dir_path)) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "chroot", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "chroot", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
@@ -180,7 +180,7 @@ NAN_METHOD(node_getrlimit) {
     }
 
     if (getrlimit(resource, &limit)) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "getrlimit", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "getrlimit", ""));
     }
 
     Local<Object> data = Nan::New<Object>();
@@ -247,14 +247,14 @@ NAN_METHOD(node_setrlimit) {
         // current values for the limits are needed
         struct rlimit current;
         if (getrlimit(resource, &current)) {
-            return Nan::ThrowError(Nan::NanErrnoException(errno, "getrlimit", ""));
+            return Nan::ThrowError(Nan::ErrnoException(errno, "getrlimit", ""));
         }
         if (get_soft) { limit.rlim_cur = current.rlim_cur; }
         if (get_hard) { limit.rlim_max = current.rlim_max; }
     }
 
     if (setrlimit(resource, &limit)) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "setrlimit", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "setrlimit", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
@@ -273,13 +273,13 @@ NAN_METHOD(node_getpwnam) {
     if (info[0]->IsNumber()) {
         pwd = getpwuid(info[0]->Int32Value());
         if (errno) {
-            return Nan::ThrowError(Nan::NanErrnoException(errno, "getpwuid", ""));
+            return Nan::ThrowError(Nan::ErrnoException(errno, "getpwuid", ""));
         }
     } else if (info[0]->IsString()) {
         String::Utf8Value pwnam(info[0]->ToString());
         pwd = getpwnam(*pwnam);
         if(errno) {
-            return Nan::ThrowError(Nan::NanErrnoException(errno, "getpwnam", ""));
+            return Nan::ThrowError(Nan::ErrnoException(errno, "getpwnam", ""));
         }
     } else {
         return Nan::ThrowTypeError("argument must be a number or a string");
@@ -314,13 +314,13 @@ NAN_METHOD(node_getgrnam) {
     if (info[0]->IsNumber()) {
         grp = getgrgid(info[0]->Int32Value());
         if (errno) {
-            return Nan::ThrowError(Nan::NanErrnoException(errno, "getgrgid", ""));
+            return Nan::ThrowError(Nan::ErrnoException(errno, "getgrgid", ""));
         }
     } else if (info[0]->IsString()) {
         String::Utf8Value pwnam(info[0]->ToString());
         grp = getgrnam(*pwnam);
         if (errno) {
-            return Nan::ThrowError(Nan::NanErrnoException(errno, "getgrnam", ""));
+            return Nan::ThrowError(Nan::ErrnoException(errno, "getgrnam", ""));
         }
     } else {
         return Nan::ThrowTypeError("argument must be a number or a string");
@@ -359,7 +359,7 @@ NAN_METHOD(node_initgroups) {
 
     String::Utf8Value unam(info[0]->ToString());
     if (initgroups(*unam, info[1]->Int32Value())) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "initgroups", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "initgroups", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
@@ -373,7 +373,7 @@ NAN_METHOD(node_seteuid) {
     }
 
     if (seteuid(info[0]->Int32Value())) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "seteuid", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "seteuid", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
@@ -387,7 +387,7 @@ NAN_METHOD(node_setegid) {
     }
 
     if (setegid(info[0]->Int32Value())) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "setegid", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "setegid", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
@@ -401,7 +401,7 @@ NAN_METHOD(node_setregid) {
     }
 
     if (setregid(info[0]->Int32Value(), info[1]->Int32Value())) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "setregid", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "setregid", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
@@ -415,7 +415,7 @@ NAN_METHOD(node_setreuid) {
     }
 
     if (setreuid(info[0]->Int32Value(), info[1]->Int32Value())) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "setreuid", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "setreuid", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
@@ -557,7 +557,7 @@ NAN_METHOD(node_gethostname) {
 
     int rc = gethostname(hostname, HOST_NAME_MAX);
     if (rc != 0) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "gethostname", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "gethostname", ""));
     }
 
     info.GetReturnValue().Set(Nan::New<String>(hostname).ToLocalChecked());
@@ -578,7 +578,7 @@ NAN_METHOD(node_sethostname) {
 
     int rc = sethostname(*str, str.length());
     if (rc != 0) {
-        return Nan::ThrowError(Nan::NanErrnoException(errno, "sethostname", ""));
+        return Nan::ThrowError(Nan::ErrnoException(errno, "sethostname", ""));
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
