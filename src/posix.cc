@@ -140,7 +140,9 @@ static const name_to_int_t rlimit_name_to_res[] = {
   { "nproc", RLIMIT_NPROC },
     #endif
   { "stack", RLIMIT_STACK },
+  #ifdef RLIMIT_AS
   { "as", RLIMIT_AS },
+  #endif
   { 0, 0 }
 };
 
