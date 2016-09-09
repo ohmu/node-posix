@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/resource.h> // setrlimit, getrlimit
+#include <sys/swap.h>  // swapon, swapoff
 #include <limits.h> // PATH_MAX
 #include <pwd.h> // getpwnam, passwd
 #include <grp.h> // getgrnam, group
@@ -586,6 +587,70 @@ NAN_METHOD(node_sethostname) {
     info.GetReturnValue().Set(Nan::Undefined());
 }
 
+NAN_METHOD(node_swapon) {
+    Nan::HandleScope scope;
+
+    if (info.Length() != 2) {
+        return Nan::ThrowError("swapon: takes exactly 2 argument");
+    }
+
+    if (!info[0]->IsString()) {
+        return Nan::ThrowTypeError("swapon: first argument must be a string");
+    }
+
+    if (!info[1]->IsNumber()) {
+        return Nan::ThrowTypeError("swapon: second argument must be an integer");
+    }
+
+    String::Utf8Value str(info[0]);
+
+    int rc = swapon(*str, info[1]->IntegerValue());
+    if (rc != 0) {
+        return Nan::ThrowError(Nan::ErrnoException(errno, "swapon", ""));
+    }
+
+    info.GetReturnValue().Set(Nan::Undefined());
+}
+
+NAN_METHOD(node_swapoff) {
+    Nan::HandleScope scope;
+
+    if (info.Length() != 1) {
+        return Nan::ThrowError("swapoff: takes exactly 1 argument");
+    }
+
+    if (!info[0]->IsString()) {
+        return Nan::ThrowTypeError("swapoff: first argument must be a string");
+    }
+
+    String::Utf8Value str(info[0]);
+
+    int rc = swapoff(*str);
+    if (rc != 0) {
+        return Nan::ThrowError(Nan::ErrnoException(errno, "swapoff", ""));
+    }
+
+    info.GetReturnValue().Set(Nan::Undefined());
+}
+
+NAN_METHOD(node_update_swap_constants) {
+    Nan::HandleScope scope;
+
+    if (info.Length() != 1) {
+      return Nan::ThrowError("update_syslog_constants: takes exactly 1 argument");
+    }
+
+    if (!info[0]->IsObject()) {
+        return Nan::ThrowTypeError("update_syslog_constants: argument must be an object");
+    }
+
+    Local<Object> obj = info[0]->ToObject();
+    obj->Set(Nan::New<String>("prefer").ToLocalChecked(), Nan::New<Integer>(SWAP_FLAG_PREFER));
+    obj->Set(Nan::New<String>("discard").ToLocalChecked(), Nan::New<Integer>(SWAP_FLAG_DISCARD));
+
+    info.GetReturnValue().Set(Nan::Undefined());
+}
+
 #define EXPORT(name, symbol) exports->Set( \
   Nan::New<String>(name).ToLocalChecked(), \
   Nan::New<FunctionTemplate>(symbol)->GetFunction() \
@@ -615,6 +680,9 @@ void init(Handle<Object> exports) {
     EXPORT("update_syslog_constants", node_update_syslog_constants);
     EXPORT("gethostname", node_gethostname);
     EXPORT("sethostname", node_sethostname);
+    EXPORT("swapon", node_swapon);
+    EXPORT("swapoff", node_swapoff);
+    EXPORT("update_swap_constants", node_update_swap_constants);
 }
 
 NODE_MODULE(posix, init);
