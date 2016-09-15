@@ -3,11 +3,14 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/resource.h> // setrlimit, getrlimit
-#include <sys/swap.h>  // swapon, swapoff
 #include <limits.h> // PATH_MAX
 #include <pwd.h> // getpwnam, passwd
 #include <grp.h> // getgrnam, group
 #include <syslog.h> // openlog, closelog, syslog, setlogmask
+
+#ifdef __linux__
+#  include <sys/swap.h>  // swapon, swapoff
+#endif
 
 using v8::Array;
 using v8::FunctionTemplate;
@@ -587,6 +590,7 @@ NAN_METHOD(node_sethostname) {
     info.GetReturnValue().Set(Nan::Undefined());
 }
 
+#ifdef __linux__
 NAN_METHOD(node_swapon) {
     Nan::HandleScope scope;
 
@@ -650,6 +654,7 @@ NAN_METHOD(node_update_swap_constants) {
 
     info.GetReturnValue().Set(Nan::Undefined());
 }
+#endif
 
 #define EXPORT(name, symbol) exports->Set( \
   Nan::New<String>(name).ToLocalChecked(), \
@@ -680,9 +685,12 @@ void init(Handle<Object> exports) {
     EXPORT("update_syslog_constants", node_update_syslog_constants);
     EXPORT("gethostname", node_gethostname);
     EXPORT("sethostname", node_sethostname);
-    EXPORT("swapon", node_swapon);
-    EXPORT("swapoff", node_swapoff);
-    EXPORT("update_swap_constants", node_update_swap_constants);
+
+    #ifdef __linux__
+      EXPORT("swapon", node_swapon);
+      EXPORT("swapoff", node_swapoff);
+      EXPORT("update_swap_constants", node_update_swap_constants);
+    #endif
 }
 
 NODE_MODULE(posix, init);
