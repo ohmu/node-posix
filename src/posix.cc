@@ -650,11 +650,13 @@ NAN_METHOD(node_update_swap_constants) {
 
     Local<Object> obj = info[0]->ToObject();
     obj->Set(Nan::New<String>("prefer").ToLocalChecked(), Nan::New<Integer>(SWAP_FLAG_PREFER));
+#ifdef SWAP_FLAG_DISCARD
     obj->Set(Nan::New<String>("discard").ToLocalChecked(), Nan::New<Integer>(SWAP_FLAG_DISCARD));
+#endif // SWAP_FLAG_DISCARD
 
     info.GetReturnValue().Set(Nan::Undefined());
 }
-#endif
+#endif // __linux__
 
 #define EXPORT(name, symbol) exports->Set( \
   Nan::New<String>(name).ToLocalChecked(), \
