@@ -349,6 +349,18 @@ Example:
 
     posix.sethostname('beefheart');
 
+## swap
+
+### posix.swapon(path, swapflags)
+
+Enable the swap device located at `path`. `swapflags` is an optional array of
+strings to define the flags of the swap device, being available `prefer` and
+`discard`.
+
+### posix.swapoff(path)
+
+Disable the swap device located at `path`.
+
 ## Credits
 
 * Some of the documentation strings stolen from Linux man pages.
@@ -356,7 +368,7 @@ Example:
 * Thank you for your contributions:
   Igor Pashev, Dan Bornstein, Jamie Paton, Nick Muerdter, Oskari Saarenmaa,
   Theo Schlossnagle, Alex Potsides, Robey Pointer, Stephen Sugden,
-  Dave Longley
+  Dave Longley, Jesús Leganés-Combarro
 
 ## LICENSE
 
