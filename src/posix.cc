@@ -300,7 +300,11 @@ NAN_METHOD(node_getpwnam) {
     obj->Set(Nan::New<String>("passwd").ToLocalChecked(), Nan::New<String>(pwd->pw_passwd).ToLocalChecked());
     obj->Set(Nan::New<String>("uid").ToLocalChecked(), Nan::New<Number>(pwd->pw_uid));
     obj->Set(Nan::New<String>("gid").ToLocalChecked(), Nan::New<Number>(pwd->pw_gid));
+#ifdef __ANDROID__
+    obj->Set(Nan::New<String>("gecos").ToLocalChecked(), Nan::Null());
+#else
     obj->Set(Nan::New<String>("gecos").ToLocalChecked(), Nan::New<String>(pwd->pw_gecos).ToLocalChecked());
+#endif
     obj->Set(Nan::New<String>("shell").ToLocalChecked(), Nan::New<String>(pwd->pw_shell).ToLocalChecked());
     obj->Set(Nan::New<String>("dir").ToLocalChecked(), Nan::New<String>(pwd->pw_dir).ToLocalChecked());
 
@@ -569,6 +573,7 @@ NAN_METHOD(node_gethostname) {
     info.GetReturnValue().Set(Nan::New<String>(hostname).ToLocalChecked());
 }
 
+#ifndef __ANDROID__
 NAN_METHOD(node_sethostname) {
     Nan::HandleScope scope;
 
@@ -589,6 +594,7 @@ NAN_METHOD(node_sethostname) {
 
     info.GetReturnValue().Set(Nan::Undefined());
 }
+#endif // __ANDROID__
 
 #ifdef __linux__
 NAN_METHOD(node_swapon) {
@@ -686,7 +692,9 @@ void init(Handle<Object> exports) {
     EXPORT("setlogmask", node_setlogmask);
     EXPORT("update_syslog_constants", node_update_syslog_constants);
     EXPORT("gethostname", node_gethostname);
+#ifndef __ANDROID__
     EXPORT("sethostname", node_sethostname);
+#endif // __ANDROID__
 
     #ifdef __linux__
       EXPORT("swapon", node_swapon);
