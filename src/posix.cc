@@ -29,7 +29,8 @@ NAN_METHOD(node_getppid) {
         return Nan::ThrowError("getppid: takes no arguments");
     }
 
-    info.GetReturnValue().Set(Nan::New<Integer>(getppid()));
+    // on some platforms pid_t is defined as long hence the static_cast
+    info.GetReturnValue().Set(Nan::New<Integer>(static_cast<int32_t>(getppid())));
 }
 
 NAN_METHOD(node_getpgid) {
@@ -43,7 +44,8 @@ NAN_METHOD(node_getpgid) {
        return Nan::ThrowTypeError("getpgid: first argument must be an integer");
     }
 
-    info.GetReturnValue().Set(Nan::New<Integer>(getpgid(info[0]->IntegerValue())));
+    // on some platforms pid_t is defined as long hence the static_cast
+    info.GetReturnValue().Set(Nan::New<Integer>(static_cast<int32_t>(getpgid(info[0]->IntegerValue()))));
 }
 
 NAN_METHOD(node_setpgid) {
@@ -101,7 +103,8 @@ NAN_METHOD(node_setsid) {
         return Nan::ThrowError(Nan::ErrnoException(errno, "setsid", ""));
     }
 
-    info.GetReturnValue().Set(Nan::New<Integer>(sid));
+    // on some platforms pid_t is defined as long hence the static_cast
+    info.GetReturnValue().Set(Nan::New<Integer>(static_cast<int32_t>(sid)));
 }
 
 NAN_METHOD(node_chroot) {
