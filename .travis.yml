@@ -2,21 +2,13 @@ os:
   - linux
 language: node_js
 node_js:
-  - "0.8"
   - "0.10"
   - "0.12"
-  - "4.0"
-  - "4.4"
-  - "5.8"
-  - "6.0"
+  - "4"
+  - "6"
+  - "8"
+  - "10"
   - "node"
-  - "iojs-v1.1.0"
-  - "iojs-v2.0.0"
-  - "iojs-v3.0.0"
-  - "iojs-v3.1.0"
-  - "iojs-v3.2.0"
-  - "iojs-v3.3.0"
-  - "iojs"
 sudo: true
 addons:
   apt:
