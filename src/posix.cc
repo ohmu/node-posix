@@ -43,7 +43,7 @@ NAN_METHOD(node_getpgid) {
        return Nan::ThrowTypeError("getpgid: first argument must be an integer");
     }
 
-    const pid_t pid = Nan::To<v8::Integer>(info[0]).ToLocalChecked()->Value();
+    const pid_t pid = Nan::To<int>(info[0]).FromMaybe(0);
     // on some platforms pid_t is defined as long hence the static_cast
     info.GetReturnValue().Set(Nan::New<Integer>(static_cast<int32_t>(getpgid(pid))));
 }
@@ -63,7 +63,7 @@ NAN_METHOD(node_setpgid) {
         return Nan::ThrowTypeError("setpgid: first argument must be an integer");
     }
 
-    if (setpgid(Nan::To<v8::Integer>(info[0]).ToLocalChecked()->Value(), Nan::To<v8::Integer>(info[1]).ToLocalChecked()->Value()) < 0) {
+    if (setpgid(Nan::To<int>(info[0]).FromMaybe(0), Nan::To<int>(info[1]).FromMaybe(0)) < 0) {
         return Nan::ThrowError(Nan::ErrnoException(errno, "setpgid", ""));
     }
 
@@ -227,26 +227,26 @@ NAN_METHOD(node_setrlimit) {
         return Nan::ThrowError("setrlimit: unknown resource name");
     }
 
-    Local<Object> limit_in = Nan::To<v8::Object>(info[1]).ToLocalChecked(); // Cast
+    Local<Object> limit_in = Nan::To<v8::Object>(info[1]).FromMaybe(Nan::New<Object>()); // Cast
     Local<String> soft_key = Nan::New<String>("soft").ToLocalChecked();
     Local<String> hard_key = Nan::New<String>("hard").ToLocalChecked();
     struct rlimit limit;
     bool get_soft = false, get_hard = false;
-    if (Nan::Has(limit_in, soft_key).ToChecked()) {
-        if (Nan::Get(limit_in, soft_key).ToLocalChecked()->IsNull()) {
+    if (Nan::Has(limit_in, soft_key).FromMaybe(false)) {
+        if (Nan::Get(limit_in, soft_key).FromMaybe<v8::Value>(Nan::Null())->IsNull()) {
             limit.rlim_cur = RLIM_INFINITY;
         } else {
-            limit.rlim_cur = Nan::To<v8::Integer>(Nan::Get(limit_in, soft_key).ToLocalChecked()).ToLocalChecked()->Value();
+            limit.rlim_cur = Nan::To<int>(Nan::Get(limit_in, soft_key).FromMaybe<v8::Value>(Nan::Null())).FromMaybe(0);
         }
     } else {
         get_soft = true;
     }
 
-    if (Nan::Has(limit_in, hard_key).ToChecked()) {
-        if (Nan::Get(limit_in, hard_key).ToLocalChecked()->IsNull()) {
+    if (Nan::Has(limit_in, hard_key).FromMaybe(false)) {
+        if (Nan::Get(limit_in, hard_key).FromMaybe<v8::Value>(Nan::Null())->IsNull()) {
             limit.rlim_max = RLIM_INFINITY;
         } else {
-            limit.rlim_max = Nan::To<v8::Integer>(Nan::Get(limit_in, hard_key).ToLocalChecked()).ToLocalChecked()->Value();
+            limit.rlim_max = Nan::To<int>(Nan::Get(limit_in, hard_key).FromMaybe<v8::Value>(Nan::Null())).FromMaybe(0);
         }
     } else {
         get_hard = true;
@@ -280,7 +280,7 @@ NAN_METHOD(node_getpwnam) {
     errno = 0; // reset errno before the call
 
     if (info[0]->IsNumber()) {
-        pwd = getpwuid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value());
+        pwd = getpwuid(Nan::To<int32_t>(info[0]).FromMaybe(0));
         if (errno) {
             return Nan::ThrowError(Nan::ErrnoException(errno, "getpwuid", ""));
         }
@@ -325,7 +325,7 @@ NAN_METHOD(node_getgrnam) {
     errno = 0; // reset errno before the call
 
     if (info[0]->IsNumber()) {
-        grp = getgrgid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value());
+        grp = getgrgid(Nan::To<int32_t>(info[0]).FromMaybe(0));
         if (errno) {
             return Nan::ThrowError(Nan::ErrnoException(errno, "getgrgid", ""));
         }
@@ -371,7 +371,7 @@ NAN_METHOD(node_initgroups) {
     }
 
     Nan::Utf8String unam(info[0]);
-    if (initgroups(*unam, Nan::To<v8::Int32>(info[1]).ToLocalChecked()->Value())) {
+    if (initgroups(*unam, Nan::To<int32_t>(info[1]).FromMaybe(0))) {
         return Nan::ThrowError(Nan::ErrnoException(errno, "initgroups", ""));
     }
 
@@ -385,7 +385,7 @@ NAN_METHOD(node_seteuid) {
         return Nan::ThrowError("seteuid: requires exactly 1 argument");
     }
 
-    if (seteuid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value())) {
+    if (seteuid(Nan::To<int32_t>(info[0]).FromMaybe(0))) {
         return Nan::ThrowError(Nan::ErrnoException(errno, "seteuid", ""));
     }
 
@@ -399,7 +399,7 @@ NAN_METHOD(node_setegid) {
         return Nan::ThrowError("setegid: requires exactly 1 argument");
     }
 
-    if (setegid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value())) {
+    if (setegid(Nan::To<int32_t>(info[0]).FromMaybe(0))) {
         return Nan::ThrowError(Nan::ErrnoException(errno, "setegid", ""));
     }
 
@@ -413,7 +413,7 @@ NAN_METHOD(node_setregid) {
         return Nan::ThrowError("setregid: requires exactly 2 arguments");
     }
 
-    if (setregid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value(), Nan::To<v8::Int32>(info[1]).ToLocalChecked()->Value())) {
+    if (setregid(Nan::To<int32_t>(info[0]).FromMaybe(0), Nan::To<int32_t>(info[1]).FromMaybe(0))) {
         return Nan::ThrowError(Nan::ErrnoException(errno, "setregid", ""));
     }
 
@@ -427,7 +427,7 @@ NAN_METHOD(node_setreuid) {
         return Nan::ThrowError("setreuid: requires exactly 2 arguments");
     }
 
-    if (setreuid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value(), Nan::To<v8::Int32>(info[1]).ToLocalChecked()->Value())) {
+    if (setreuid(Nan::To<int32_t>(info[0]).FromMaybe(0), Nan::To<int32_t>(info[1]).FromMaybe(0))) {
         return Nan::ThrowError(Nan::ErrnoException(errno, "setreuid", ""));
     }
 
@@ -453,7 +453,7 @@ NAN_METHOD(node_openlog) {
         return Nan::ThrowError("openlog: invalid argument values");
     }
     // note: openlog does not ever fail, no return value
-    openlog(syslog_ident, Nan::To<v8::Int32>(info[1]).ToLocalChecked()->Value(), Nan::To<v8::Int32>(info[2]).ToLocalChecked()->Value());
+    openlog(syslog_ident, Nan::To<int32_t>(info[1]).FromMaybe(0), Nan::To<int32_t>(info[2]).FromMaybe(0));
 
     info.GetReturnValue().Set(Nan::Undefined());
 }
@@ -480,7 +480,7 @@ NAN_METHOD(node_syslog) {
 
     Nan::Utf8String message(info[1]);
     // note: syslog does not ever fail, no return value
-    syslog(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value(), "%s", *message);
+    syslog(Nan::To<int32_t>(info[0]).FromMaybe(0), "%s", *message);
 
     info.GetReturnValue().Set(Nan::Undefined());
 }
@@ -492,7 +492,7 @@ NAN_METHOD(node_setlogmask) {
         return Nan::ThrowError("setlogmask: takes exactly 1 argument");
     }
 
-    info.GetReturnValue().Set(Nan::New<Integer>(setlogmask(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value())));
+    info.GetReturnValue().Set(Nan::New<Integer>(setlogmask(Nan::To<int32_t>(info[0]).FromMaybe(0))));
 }
 
 #define ADD_MASK_FLAG(name, flag) \
@@ -510,7 +510,7 @@ NAN_METHOD(node_update_syslog_constants) {
         return Nan::ThrowTypeError("update_syslog_constants: argument must be an object");
     }
 
-    Local<Object> obj = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+    Local<Object> obj = Nan::To<v8::Object>(info[0]).FromMaybe(Nan::New<Object>());
     ADD_MASK_FLAG("emerg", LOG_EMERG);
     ADD_MASK_FLAG("alert", LOG_ALERT);
     ADD_MASK_FLAG("crit", LOG_CRIT);
@@ -617,7 +617,7 @@ NAN_METHOD(node_swapon) {
 
     Nan::Utf8String str(info[0]);
 
-    int rc = swapon(*str, Nan::To<v8::Integer>(info[1]).ToLocalChecked()->Value());
+    int rc = swapon(*str, Nan::To<int>(info[1]).FromMaybe(0));
     if (rc != 0) {
         return Nan::ThrowError(Nan::ErrnoException(errno, "swapon", ""));
     }
@@ -657,7 +657,7 @@ NAN_METHOD(node_update_swap_constants) {
         return Nan::ThrowTypeError("update_syslog_constants: argument must be an object");
     }
 
-    Local<Object> obj = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+    Local<Object> obj = Nan::To<v8::Object>(info[0]).FromMaybe(Nan::New<Object>());
     Nan::Set(obj, Nan::New<String>("prefer").ToLocalChecked(), Nan::New<Integer>(SWAP_FLAG_PREFER));
 #ifdef SWAP_FLAG_DISCARD
     Nan::Set(obj, Nan::New<String>("discard").ToLocalChecked(), Nan::New<Integer>(SWAP_FLAG_DISCARD));
@@ -672,7 +672,7 @@ NAN_METHOD(node_update_swap_constants) {
   Nan::GetFunction(Nan::New<FunctionTemplate>(symbol)).ToLocalChecked()    \
 )
 
-void init(Local<Object> exports) {
+void init(Local<Object> exports, Local<Value> val, void* data) {
     EXPORT("getppid", node_getppid);
     EXPORT("getpgid", node_getpgid);
     EXPORT("setpgid", node_setpgid);
